@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.obedsource'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url = 'https://maven.enginehub.org/repo/' }
+    maven { url = 'https://repo.extendedclip.com/releases/' }
+    maven { url = 'https://jitpack.io' }
+}
+
+dependencies {
+    // Spigot API 1.19.4 is the lowest supported version (TextDisplay entities).
+    compileOnly 'org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT'
+    // Optional integrations (soft dependencies, never shaded).
+    compileOnly('com.sk89q.worldguard:worldguard-bukkit:7.0.8') { transitive = false }
+    compileOnly('com.sk89q.worldguard:worldguard-core:7.0.8') { transitive = false }
+    compileOnly('com.sk89q.worldedit:worldedit-core:7.2.14') { transitive = false }
+    compileOnly('com.sk89q.worldedit:worldedit-bukkit:7.2.14') { transitive = false }
+    compileOnly('com.github.MilkBowl:VaultAPI:1.7.1') { transitive = false }
+    compileOnly('me.clip:placeholderapi:2.11.6') { transitive = false }
+    // The SQLite JDBC driver (org.xerial) ships inside every Spigot/Paper/Purpur/Folia server,
+    // so it is not shaded: the plugin jar stays tiny.
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+    options.compilerArgs += ['-Xlint:deprecation']
+}
+
+processResources {
+    filteringCharset = 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand(version: project.version)
+    }
+}
+
+jar {
+    archiveFileName = "AdvancedWayPoints-${project.version}.jar"
+    // Same sources, same bytes: the sha256 in update.json stays valid on rebuilds.
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+    from('LICENSE') { into 'META-INF' }
+    from('NOTICE') { into 'META-INF' }
+}
+
+// Tests run without a server: YAML files, settings, storage (real SQLite) and helpers.
+dependencies {
+    testImplementation 'org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT'
+    testImplementation 'org.xerial:sqlite-jdbc:3.46.1.0'
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}

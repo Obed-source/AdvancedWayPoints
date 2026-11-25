@@ -1,0 +1,230 @@
+# ============================================================
+#  AdvancedWayPoints - config.yml
+#  Author: XDiez (Obed-source) - https://github.com/Obed-source/AdvancedWayPoints
+#
+#  Use /wp restart to apply changes (configuration only, the database is not reloaded).
+#  This file updates itself when the plugin is updated: new options are added with
+#  their comments and your values are kept (a .bak copy is saved first).
+# ============================================================
+
+# Do not edit: used to update this file automatically.
+config-version: 1
+
+# Language file inside /lang (es, en, or any file you create there, e.g. fr -> lang/fr.yml).
+language: es
+
+# Prefix added before every chat message of the plugin. Supports & codes and &#RRGGBB.
+message-prefix: "&8[&b&lWaypoints&8] &r"
+
+command:
+  # Main command name (needs /wp restart or a server restart to change).
+  name: waypoints
+  # Aliases of the main command.
+  aliases:
+    - wp
+  # What /wp without arguments does: "menu" or "help".
+  no-args-action: menu
+
+storage:
+  # SQLite file inside the plugin folder.
+  file: waypoints.db
+
+waypoints:
+  name:
+    # Maximum length of a waypoint name (color codes are not counted).
+    max-length: 32
+    # Characters allowed in names, as a regular expression character class.
+    # Default: any letter (accents and ñ included), digits and spaces.
+    # Players with wp.name.format can also use & color codes.
+    allowed-characters: '\p{L}\p{N} '
+  # Waypoints a player may own when they have no wp.limit.<n> permission.
+  # With wp.limit.<n> the highest n wins; wp.limit.unlimited removes the limit.
+  default-limit: 3
+  # Show the waypoint right after it is created.
+  show-on-create: true
+  # Order of non favorite waypoints: false = oldest first, true = newest first.
+  # Favorites are always shown first, in the order they were marked.
+  newest-first: false
+  # Icons players can pick in the edit menu (keyboard symbols / unicode).
+  # Emoji outside the Minecraft font (most color emoji) show as a box, prefer these symbols.
+  icons:
+    - "•"
+    - "●"
+    - "○"
+    - "◉"
+    - "◎"
+    - "⦿"
+    - "◆"
+    - "◇"
+    - "★"
+    - "☆"
+    - "❤"
+    - "✦"
+    - "✪"
+    - "⚑"
+    - "⌂"
+    - "⚔"
+    - "⛏"
+    - "☀"
+    - "☁"
+    - "❄"
+    - "♪"
+    - "✿"
+    - "☠"
+    - "⚓"
+    - "✈"
+    - "➤"
+    - "✚"
+    - "♦"
+    - "♠"
+    - "♣"
+  # Icon used when random-icon is false. It is the tag shown before the name.
+  default-icon: "•"
+  # Pick a random icon from the list when a waypoint is created.
+  random-icon: true
+  # Pick a random icon color (from colors:) when a waypoint is created.
+  random-icon-color: true
+  # Pick a random text color when a waypoint is created (otherwise default-text-color).
+  random-text-color: false
+  # Default colors (keys from colors:). These are always allowed, without permission.
+  default-text-color: white
+  default-icon-color: white
+  default-background-color: black
+  # Background opacity, 0 (transparent) to 255 (solid).
+  background-alpha: 160
+
+restrictions:
+  # Where waypoints may be created. Players with wp.bypass.restrictions ignore these rules.
+  worlds:
+    # disabled, whitelist (only listed worlds) or blacklist (every world except listed ones).
+    mode: blacklist
+    list: []
+  # WorldGuard regions (only when WorldGuard is installed).
+  # Entries can be "region" or "world:region".
+  regions:
+    # disabled, whitelist (only inside listed regions) or blacklist (never inside listed regions).
+    mode: disabled
+    list: []
+
+display:
+  # Text of the floating label. Placeholders: {icon} {icon_color} {text_color} {name} {distance}
+  format: "{icon_color}{icon} {text_color}{name}{distance}"
+  distance:
+    enabled: true
+    # How {distance} looks. {distance} inside it is the raw value, e.g. "30m".
+    format: " &7({distance})"
+    meters: "{value}m"
+    kilometers: "{value}km"
+    # Show kilometers from this many blocks.
+    kilometers-from: 1000
+  scale:
+    # Base size of the label.
+    base: 1.0
+    # Far waypoints are drawn at max-render-distance; grow the label so it stays readable.
+    grow-with-distance: true
+    # Distance at which the label has its base size.
+    reference-distance: 12.0
+    # Largest size a label can reach.
+    max: 4.0
+  # Waypoints farther than this are drawn at this distance, in their direction
+  # (needed because clients only render entities near them). Keep it below your
+  # entity tracking range (spigot.yml), 28 is safe everywhere.
+  max-render-distance: 28.0
+  # Hide the label when the player is closer than this (0 = never hide).
+  hide-within: 0.0
+  # Height of the label above the saved position.
+  height-offset: 1.5
+  # How often labels follow the player, in ticks (1 = smoothest, 2-4 recommended).
+  update-interval-ticks: 2
+  # Visible through blocks.
+  see-through: true
+  text-shadow: true
+  # Always fully lit, even at night or underground.
+  full-bright: true
+  line-width: 200
+  # Text opacity 0-255.
+  text-opacity: 255
+  # Smooth movement between updates in ticks (Minecraft 1.20.2+ only).
+  smooth-movement-ticks: 2
+
+list:
+  # Waypoints per page in /wp list.
+  page-size: 8
+  # Show the waypoint ID when hovering an entry (shift-click always inserts it into the chat).
+  show-id-on-hover: false
+  # Date format of creation dates (Java DateTimeFormatter).
+  date-format: "dd/MM/yyyy HH:mm"
+
+help:
+  # Commands per page in /wp help and /wp admin help.
+  page-size: 8
+
+input:
+  # How menus ask for text (new name, player to share with...):
+  #   ANVIL   - anvil rename field (needs Paper/Purpur/Folia, or Spigot 1.21+)
+  #   SIGN    - a temporary sign that only that player edits
+  #   COMMAND - a clickable message that writes the command for the player
+  #   CHAT    - the next chat message is used as the value
+  # If the chosen one is not available on the server, the next one in this order is used.
+  type: ANVIL
+  # Seconds before a pending input is cancelled (sign and chat).
+  timeout-seconds: 60
+  # Word that cancels chat input.
+  cancel-word: cancel
+
+menus:
+  # Hide menu buttons the player has no permission for.
+  # false = always show them, with a "no permission" line in the lore.
+  hide-items-without-permission: false
+
+share:
+  # Allow sharing with players who are offline (they must have joined before).
+  allow-offline-players: true
+  # Refuse the share when the receiver reached their waypoint limit (online receivers only).
+  respect-target-limit: true
+
+# Vault prices (needs Vault and an economy plugin). wp.bypass.cost skips them.
+economy:
+  create:
+    enabled: false
+    price: 100.0
+  share:
+    enabled: false
+    price: 50.0
+  # Money given back when a waypoint is deleted.
+  delete-refund:
+    enabled: false
+    amount: 50.0
+
+updater:
+  # Check GitHub for new versions on startup.
+  enabled: true
+  # Download new versions into the server's update folder (installed on next restart).
+  auto-download: true
+  # Tell players with wp.admin.update when they join.
+  notify-admins: true
+  url: "https://raw.githubusercontent.com/Obed-source/AdvancedWayPoints/main/update.json"
+
+# Colors for text, icons and backgrounds. Names shown to players are in the lang file (colors.<key>).
+# Permissions: wp.color.<text|icon|background>.<key>  (e.g. wp.color.background.red)
+# Custom hex colors by command need wp.color.<text|icon|background>.custom
+colors:
+  white: {hex: "#FFFFFF", material: WHITE_DYE}
+  light_gray: {hex: "#AAAAAA", material: LIGHT_GRAY_DYE}
+  gray: {hex: "#555555", material: GRAY_DYE}
+  black: {hex: "#000000", material: BLACK_DYE}
+  brown: {hex: "#8B5A2B", material: BROWN_DYE}
+  red: {hex: "#FF5555", material: RED_DYE}
+  orange: {hex: "#FFAA00", material: ORANGE_DYE}
+  yellow: {hex: "#FFFF55", material: YELLOW_DYE}
+  lime: {hex: "#55FF55", material: LIME_DYE}
+  green: {hex: "#00AA00", material: GREEN_DYE}
+  cyan: {hex: "#00AAAA", material: CYAN_DYE}
+  light_blue: {hex: "#55FFFF", material: LIGHT_BLUE_DYE}
+  blue: {hex: "#5555FF", material: BLUE_DYE}
+  purple: {hex: "#AA00AA", material: PURPLE_DYE}
+  magenta: {hex: "#FF55FF", material: MAGENTA_DYE}
+  pink: {hex: "#FFB6C1", material: PINK_DYE}
+
+# Extra log output.
+debug: false

@@ -1,0 +1,100 @@
+# ============================================================
+#  AdvancedWayPoints - menus.yml
+#  Layout of every menu. Texts (names, lore, titles) are in lang/<language>.yml under "menu".
+#
+#  rows: 1 - 6
+#  content-slots: slots where the list (waypoints, colors, icons) is drawn, in order.
+#                 Format: "10-16, 19-25" (ranges and single slots). Slot 0 is the top left corner.
+#                 Change the first slot to choose where the list starts.
+#  items: buttons. Each one has:
+#     material: item type (https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html)
+#     slot: one slot, or slots: "0-8, 45" for several
+#     custom-model-data: optional, for resource packs
+#     enabled: false hides the button
+#  Pagination buttons are always shown; "-disabled" variants are used when there is no other page.
+# ============================================================
+
+# Do not edit: used to update this file automatically.
+config-version: 1
+
+# Waypoint list (/wp menu).
+main:
+  rows: 6
+  content-slots: "10-16, 19-25, 28-34"
+  waypoint:
+    # Item of each waypoint.
+    material: MAP
+    # Item of favorite waypoints.
+    favorite-material: FILLED_MAP
+    # Glow on waypoints that are visible.
+    glow-when-visible: true
+  items:
+    filler: {material: BLACK_STAINED_GLASS_PANE, slots: "0-9, 17, 18, 26, 27, 35-44, 46, 52"}
+    empty: {material: STRUCTURE_VOID, slot: 22}
+    info: {material: BOOK, slot: 4}
+    view-mode-single: {material: ENDER_PEARL, slot: 45}
+    view-mode-accumulate: {material: ENDER_EYE, slot: 45}
+    hide-all: {material: GLASS_BOTTLE, slot: 47}
+    previous-page: {material: ARROW, slot: 48}
+    previous-page-disabled: {material: GRAY_STAINED_GLASS_PANE, slot: 48}
+    page-info: {material: PAPER, slot: 49}
+    next-page: {material: ARROW, slot: 50}
+    next-page-disabled: {material: GRAY_STAINED_GLASS_PANE, slot: 50}
+    create: {material: WRITABLE_BOOK, slot: 51}
+    close: {material: BARRIER, slot: 53}
+
+# Options of one waypoint (right click in the list).
+edit:
+  rows: 5
+  items:
+    filler: {material: BLACK_STAINED_GLASS_PANE, slots: "0-3, 5-9, 17, 18, 26, 27, 35-39, 41-44"}
+    preview: {material: FILLED_MAP, slot: 4}
+    rename: {material: NAME_TAG, slot: 19}
+    text-color: {material: OAK_SIGN, slot: 20}
+    icon: {material: ITEM_FRAME, slot: 21}
+    icon-color: {material: GLOW_INK_SAC, slot: 22}
+    background-color: {material: BLACK_BANNER, slot: 23}
+    favorite-add: {material: NETHER_STAR, slot: 24}
+    favorite-remove: {material: FIREWORK_STAR, slot: 24}
+    share: {material: WRITABLE_BOOK, slot: 25}
+    teleport: {material: ENDER_PEARL, slot: 31}
+    back: {material: ARROW, slot: 36}
+    delete: {material: BARRIER, slot: 40}
+
+# Color picker (text, icon and background).
+color:
+  rows: 6
+  content-slots: "10-16, 19-25, 28-34"
+  items:
+    filler: {material: BLACK_STAINED_GLASS_PANE, slots: "0-9, 17, 18, 26, 27, 35-44, 46, 47, 51-53"}
+    back: {material: ARROW, slot: 45}
+    previous-page: {material: ARROW, slot: 48}
+    previous-page-disabled: {material: GRAY_STAINED_GLASS_PANE, slot: 48}
+    page-info: {material: PAPER, slot: 49}
+    next-page: {material: ARROW, slot: 50}
+    next-page-disabled: {material: GRAY_STAINED_GLASS_PANE, slot: 50}
+
+# Icon picker (icons come from config.yml waypoints.icons).
+icon:
+  rows: 6
+  content-slots: "10-16, 19-25, 28-34"
+  icon-item:
+    material: PAPER
+    selected-material: MAP
+  items:
+    filler: {material: BLACK_STAINED_GLASS_PANE, slots: "0-9, 17, 18, 26, 27, 35-44, 46, 47, 51-53"}
+    back: {material: ARROW, slot: 45}
+    previous-page: {material: ARROW, slot: 48}
+    previous-page-disabled: {material: GRAY_STAINED_GLASS_PANE, slot: 48}
+    page-info: {material: PAPER, slot: 49}
+    next-page: {material: ARROW, slot: 50}
+    next-page-disabled: {material: GRAY_STAINED_GLASS_PANE, slot: 50}
+
+# Delete confirmation.
+confirm-delete:
+  rows: 3
+  items:
+    filler: {material: BLACK_STAINED_GLASS_PANE, slots: "0-10, 12, 14, 16-26"}
+    confirm: {material: LIME_CONCRETE, slot: 11}
+    preview: {material: FILLED_MAP, slot: 13}
+    cancel: {material: RED_CONCRETE, slot: 15}

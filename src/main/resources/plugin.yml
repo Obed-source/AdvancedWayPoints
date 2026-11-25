@@ -1,0 +1,204 @@
+name: AdvancedWayPoints
+version: '${version}'
+main: io.github.obedsource.advancedwaypoints.AdvancedWaypointsPlugin
+api-version: '1.19'
+folia-supported: true
+authors: [XDiez, Obed-source]
+website: https://github.com/Obed-source/AdvancedWayPoints
+description: Personal waypoints with floating text labels, menus, sharing and a developer API.
+softdepend: [WorldGuard, Vault, PlaceholderAPI]
+# The main command (/waypoints, alias /wp) is registered at runtime so its name and aliases
+# can be changed in config.yml.
+
+permissions:
+  wp.user:
+    description: Every player feature (granted to everyone by default).
+    default: true
+    children:
+      wp.help: true
+      wp.menu: true
+      wp.create: true
+      wp.list: true
+      wp.view: true
+      wp.hide: true
+      wp.mode: true
+      wp.rename: true
+      wp.delete: true
+      wp.share: true
+      wp.favorite: true
+      wp.icon: true
+      wp.color.text: true
+      wp.color.icon: true
+      wp.color.background: true
+  wp.help:
+    description: /wp help (negate it to hide the help).
+    default: true
+  wp.menu:
+    description: /wp menu
+    default: true
+  wp.create:
+    description: /wp create <name>
+    default: true
+  wp.list:
+    description: /wp list
+    default: true
+  wp.view:
+    description: Show / hide a waypoint by clicking it.
+    default: true
+  wp.hide:
+    description: /wp hide
+    default: true
+  wp.mode:
+    description: Switch between single and accumulate view mode.
+    default: true
+  wp.rename:
+    description: Rename own waypoints.
+    default: true
+  wp.delete:
+    description: Delete own waypoints.
+    default: true
+  wp.share:
+    description: Share copies of own waypoints.
+    default: true
+  wp.favorite:
+    description: Mark own waypoints as favorite.
+    default: true
+  wp.icon:
+    description: Change the icon of own waypoints (menu only).
+    default: true
+  wp.name.format:
+    description: Use & color codes in waypoint names.
+    default: op
+  wp.color.text:
+    description: Open the text color picker (each color needs wp.color.text.<color>).
+    default: true
+  wp.color.icon:
+    description: Open the icon color picker (each color needs wp.color.icon.<color>).
+    default: true
+  wp.color.background:
+    description: Open the background picker (each color needs wp.color.background.<color>).
+    default: true
+  wp.color.text.*:
+    description: Every text color, including custom ones.
+    default: op
+    children:
+      wp.color.text.custom: true
+      wp.color.text.white: true
+      wp.color.text.light_gray: true
+      wp.color.text.gray: true
+      wp.color.text.black: true
+      wp.color.text.brown: true
+      wp.color.text.red: true
+      wp.color.text.orange: true
+      wp.color.text.yellow: true
+      wp.color.text.lime: true
+      wp.color.text.green: true
+      wp.color.text.cyan: true
+      wp.color.text.light_blue: true
+      wp.color.text.blue: true
+      wp.color.text.purple: true
+      wp.color.text.magenta: true
+      wp.color.text.pink: true
+  wp.color.icon.*:
+    description: Every icon color, including custom ones.
+    default: op
+    children:
+      wp.color.icon.custom: true
+      wp.color.icon.white: true
+      wp.color.icon.light_gray: true
+      wp.color.icon.gray: true
+      wp.color.icon.black: true
+      wp.color.icon.brown: true
+      wp.color.icon.red: true
+      wp.color.icon.orange: true
+      wp.color.icon.yellow: true
+      wp.color.icon.lime: true
+      wp.color.icon.green: true
+      wp.color.icon.cyan: true
+      wp.color.icon.light_blue: true
+      wp.color.icon.blue: true
+      wp.color.icon.purple: true
+      wp.color.icon.magenta: true
+      wp.color.icon.pink: true
+  wp.color.background.*:
+    description: Every background color, including custom ones.
+    default: op
+    children:
+      wp.color.background.custom: true
+      wp.color.background.white: true
+      wp.color.background.light_gray: true
+      wp.color.background.gray: true
+      wp.color.background.black: true
+      wp.color.background.brown: true
+      wp.color.background.red: true
+      wp.color.background.orange: true
+      wp.color.background.yellow: true
+      wp.color.background.lime: true
+      wp.color.background.green: true
+      wp.color.background.cyan: true
+      wp.color.background.light_blue: true
+      wp.color.background.blue: true
+      wp.color.background.purple: true
+      wp.color.background.magenta: true
+      wp.color.background.pink: true
+  wp.limit.unlimited:
+    description: No waypoint limit. Use wp.limit.<n> for a number (the highest wins).
+    default: op
+  wp.bypass.restrictions:
+    description: Create waypoints in blocked worlds and regions.
+    default: op
+  wp.bypass.cost:
+    description: Create and share waypoints for free.
+    default: op
+  wp.admin:
+    description: Every admin action.
+    default: op
+    children:
+      wp.admin.help: true
+      wp.admin.list: true
+      wp.admin.menu: true
+      wp.admin.info: true
+      wp.admin.tp: true
+      wp.admin.create: true
+      wp.admin.rename: true
+      wp.admin.color: true
+      wp.admin.delete: true
+      wp.admin.clear: true
+      wp.admin.restart: true
+      wp.admin.update: true
+  wp.admin.help:
+    description: /wp admin help (every command, user and admin).
+    default: op
+  wp.admin.list:
+    description: /wp admin list <player>
+    default: op
+  wp.admin.menu:
+    description: /wp admin menu <player> (edit any waypoint from the menu).
+    default: op
+  wp.admin.info:
+    description: /wp admin info <player>
+    default: op
+  wp.admin.tp:
+    description: /wp admin tp <player> <id>
+    default: op
+  wp.admin.create:
+    description: /wp admin create <player> <name>
+    default: op
+  wp.admin.rename:
+    description: /wp admin rename <player> <id> <name>
+    default: op
+  wp.admin.color:
+    description: /wp admin color <player> <id> <text|icon|background> <color>
+    default: op
+  wp.admin.delete:
+    description: /wp admin delete <player> <id>
+    default: op
+  wp.admin.clear:
+    description: /wp admin clear <player> (delete every waypoint).
+    default: op
+  wp.admin.restart:
+    description: /wp restart (reload configuration files).
+    default: op
+  wp.admin.update:
+    description: Be told about new versions on join.
+    default: op

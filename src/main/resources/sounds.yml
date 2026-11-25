@@ -1,0 +1,65 @@
+# ============================================================
+#  AdvancedWayPoints - sounds.yml
+#  One sound per action. The same action uses the same sound from a command or a menu.
+#  sound: namespaced key of the Minecraft version 1.19.4+ (e.g. minecraft:ui.button.click)
+#         https://minecraft.wiki/w/Sounds.json#Java_Edition_values
+#  volume: 0.0 - 1.0 (higher values only make it audible from farther away)
+#  pitch: 0.5 - 2.0
+#  enabled: false mutes only that action.
+# ============================================================
+
+# Do not edit: used to update this file automatically.
+config-version: 1
+
+# Master switch for every sound of the plugin.
+enabled: true
+# Sound category (MASTER, MUSIC, RECORDS, WEATHER, BLOCKS, HOSTILE, NEUTRAL, PLAYERS, AMBIENT, VOICE).
+category: MASTER
+
+sounds:
+  # Waypoint created.
+  create: {sound: "minecraft:entity.experience_orb.pickup", volume: 1.0, pitch: 1.2, enabled: true}
+  # Waypoint deleted.
+  delete: {sound: "minecraft:entity.item.break", volume: 0.8, pitch: 1.0, enabled: true}
+  # Name changed.
+  rename: {sound: "minecraft:block.anvil.use", volume: 0.5, pitch: 1.6, enabled: true}
+  # Text, icon or background color changed.
+  color: {sound: "minecraft:item.dye.use", volume: 1.0, pitch: 1.0, enabled: true}
+  # Icon changed.
+  icon: {sound: "minecraft:entity.item_frame.add_item", volume: 1.0, pitch: 1.2, enabled: true}
+  # Added to / removed from favorites.
+  favorite-add: {sound: "minecraft:entity.player.levelup", volume: 0.6, pitch: 1.8, enabled: true}
+  favorite-remove: {sound: "minecraft:block.note_block.bass", volume: 0.8, pitch: 0.8, enabled: true}
+  # Waypoint shared (sender) and received (receiver).
+  share-send: {sound: "minecraft:entity.villager.yes", volume: 0.8, pitch: 1.2, enabled: true}
+  share-receive: {sound: "minecraft:block.note_block.chime", volume: 1.0, pitch: 1.4, enabled: true}
+  # Waypoint shown / hidden (go, toggle).
+  show: {sound: "minecraft:block.amethyst_block.chime", volume: 1.0, pitch: 1.2, enabled: true}
+  hide: {sound: "minecraft:block.amethyst_block.hit", volume: 1.0, pitch: 0.8, enabled: true}
+  # Every waypoint hidden.
+  hide-all: {sound: "minecraft:block.beacon.deactivate", volume: 0.6, pitch: 1.4, enabled: true}
+  # View mode changed (single / accumulate).
+  mode: {sound: "minecraft:block.lever.click", volume: 0.8, pitch: 1.2, enabled: true}
+  # Chat list.
+  list: {sound: "minecraft:item.book.page_turn", volume: 1.0, pitch: 1.0, enabled: true}
+  # Help pages.
+  help: {sound: "minecraft:item.book.page_turn", volume: 1.0, pitch: 1.2, enabled: true}
+  # Any error (invalid name, limit reached, not allowed here...).
+  error: {sound: "minecraft:entity.villager.no", volume: 0.8, pitch: 1.0, enabled: true}
+  # Missing permission.
+  no-permission: {sound: "minecraft:block.note_block.didgeridoo", volume: 0.8, pitch: 0.6, enabled: true}
+  # Menu opened.
+  menu-open: {sound: "minecraft:block.chest.open", volume: 0.5, pitch: 1.2, enabled: true}
+  # Menu button clicked.
+  menu-click: {sound: "minecraft:ui.button.click", volume: 0.5, pitch: 1.0, enabled: true}
+  # Menu page changed.
+  menu-page: {sound: "minecraft:item.book.page_turn", volume: 0.8, pitch: 1.0, enabled: true}
+  # Back button.
+  menu-back: {sound: "minecraft:ui.button.click", volume: 0.5, pitch: 0.8, enabled: true}
+  # Text input opened / cancelled.
+  input-open: {sound: "minecraft:block.note_block.pling", volume: 0.8, pitch: 1.5, enabled: true}
+  input-cancel: {sound: "minecraft:block.note_block.bass", volume: 0.8, pitch: 0.7, enabled: true}
+  # Admin teleport.
+  teleport: {sound: "minecraft:entity.enderman.teleport", volume: 0.8, pitch: 1.0, enabled: true}
+  # /wp restart.
+  restart: {sound: "minecraft:block.beacon.power_select", volume: 0.8, pitch: 1.4, enabled: true}

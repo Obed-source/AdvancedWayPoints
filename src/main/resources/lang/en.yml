@@ -1,0 +1,398 @@
+# ============================================================
+#  AdvancedWayPoints - English
+#  Every text of the plugin: messages, help, chat list and menus.
+#  Colors: &a, &l... and hex &#RRGGBB. {placeholders} are replaced automatically.
+#  {cmd} is the configured main command (default "waypoints").
+#  Set a message to "" to not send it.
+# ============================================================
+
+# Do not edit: used to update this file automatically.
+config-version: 1
+
+messages:
+  no-permission: "&cYou don't have permission to do that."
+  usage: "&cUsage: &f{usage}"
+  loading: "&eYour waypoints are still loading, try again in a second."
+  player-only: "&cOnly players can use this command."
+  unknown-command: "&cUnknown command. Use &f/{command} help&c."
+  player-not-found: "&cPlayer &f{player} &cwas not found."
+  player-offline: "&cPlayer &f{player} &cis not online."
+  not-found: "&cYou have no waypoint &f{input}&c."
+  name-empty: "&cThe name can't be empty."
+  name-too-long: "&cThe name can have at most &f{max} &ccharacters."
+  name-invalid: "&cThe name can only have letters, numbers and spaces."
+  limit-reached: "&cYou reached your limit of &f{limit} &cwaypoints."
+  world-not-allowed: "&cYou can't create waypoints in this world."
+  region-not-allowed: "&cYou can't create waypoints in this area."
+  world-not-loaded: "&cWorld &f{world} &cis not loaded."
+  cancelled: "&cThe action was cancelled."
+  economy:
+    not-enough: "&cYou need &f{price} &cto do that."
+  created: "&aWaypoint {icon_color}{icon} {name} &acreated at &f{x}, {y}, {z}&a."
+  created-paid: "&aWaypoint {icon_color}{icon} {name} &acreated for &f{price}&a."
+  renamed: "&aThe waypoint is now called {name}&a."
+  color-no-permission: "&cYou don't have permission to use the color &f{color}&c."
+  color-no-permission-custom: "&cYou don't have permission to use custom colors."
+  color-invalid: "&cInvalid color: &f{color}&c. Use a color from the list, &f#RRGGBB &cor a color code."
+  color-changed:
+    text: "&aText color of {name} &achanged to {color}&a."
+    icon: "&aIcon color of {name} &achanged to {color}&a."
+    background: "&aBackground of {name} &achanged to {color}&a."
+  icon-invalid: "&cThat icon is not in the list."
+  icon-changed: "&aIcon of {name} &achanged to {icon_color}{icon}&a."
+  favorite-added: "&e★ {name} &eis now a favorite."
+  favorite-removed: "&7{name} &7is no longer a favorite."
+  deleted: "&cWaypoint {name} &cdeleted."
+  deleted-refund: "&cWaypoint {name} &cdeleted. &aYou got &f{price} &aback."
+  share-self: "&cYou can't share a waypoint with yourself."
+  share-target-limit: "&c{player} reached their waypoint limit."
+  shared: "&aYou shared {name} &awith &f{player}&a."
+  shared-paid: "&aYou shared {name} &awith &f{player} &afor &f{price}&a."
+  share-received: "&b{player} &ashared the waypoint {icon_color}{icon} {name} &awith you. It is now visible."
+  shown: "&aShowing {icon_color}{icon} {name}&a."
+  shown-accumulate: "&aAlso showing {icon_color}{icon} {name}&a."
+  hidden: "&7You hid {name}&7."
+  not-visible: "&c{name} &cis not visible."
+  nothing-visible: "&cYou have no visible waypoints."
+  hidden-all: "&7You hid all your waypoints (they stay in your list)."
+  mode-single: "&eView mode: &fone at a time&e. Picking a waypoint hides the previous one."
+  mode-accumulate: "&eView mode: &faccumulate&e. Picked waypoints add up on screen."
+  restarted: "&aConfiguration reloaded (data was not reloaded)."
+  admin-cleared: "&cDeleted &f{count} &cwaypoints of &f{player}&c."
+  admin-info:
+    - "&8&m                                        "
+    - "&b&lWaypoints of &f{player}"
+    - "&7Waypoints: &f{count} &8/ &f{limit}"
+    - "&7Visible: &f{visible}"
+    - "&7View mode: &f{mode}"
+    - "&7Online: &f{online}"
+    - "&7UUID: &f{uuid}"
+    - "&8&m                                        "
+  teleported: "&aTeleported to {name}&a."
+  update-available: "&eA new version of AdvancedWayPoints is available: &f{version}&e. {changelog}"
+  update-downloaded: "&aVersion &f{version} &awas downloaded and will be installed on the next restart."
+
+input:
+  anvil-title:
+    rename: "New name"
+    share: "Player name"
+    create: "Waypoint name"
+  # Two lines shown on the sign, below what the player writes.
+  sign-lines:
+    rename:
+      - "^^^^^^^^^^"
+      - "New name"
+    share:
+      - "^^^^^^^^^^"
+      - "Player"
+    create:
+      - "^^^^^^^^^^"
+      - "Name"
+  chat-prompt:
+    rename: "&eType the new name in chat. Type &f{cancel} &eto cancel &7({seconds}s)."
+    share: "&eType the player's name in chat. Type &f{cancel} &eto cancel &7({seconds}s)."
+    create: "&eType the waypoint name in chat. Type &f{cancel} &eto cancel &7({seconds}s)."
+  command-prompt:
+    rename: "&e[Click here] &7to type the new name."
+    share: "&e[Click here] &7to type the player's name."
+    create: "&e[Click here] &7to type the waypoint name."
+  command-hover:
+    - "&7Type the value and press &fEnter&7."
+  timeout: "&cTime to type ran out."
+
+help:
+  header:
+    - "&8&m          &r &b&lWaypoints &7- Help &8(&f{page}&8/&f{pages}&8) &8&m          "
+  admin-header:
+    - "&8&m       &r &c&lWaypoints &7- Admin help &8(&f{page}&8/&f{pages}&8) &8&m       "
+  line: " &b{usage} &8- &7{description}"
+  admin-line: " &c{usage} &8- &7{description}"
+  hover:
+    - "&7Click to write the command"
+  entries:
+    help: {usage: "help [page]", description: "Shows this help."}
+    menu: {usage: "menu", description: "Opens your waypoint menu."}
+    create: {usage: "create <name>", description: "Creates a waypoint where you stand."}
+    list: {usage: "list [page]", description: "Lists your waypoints. Click one to see it."}
+    view: {usage: "view <id>", description: "Shows or hides a waypoint."}
+    hide: {usage: "hide <id>", description: "Hides a waypoint from view (it stays in the list)."}
+    hide-all: {usage: "hide all", description: "Hides all your waypoints from view."}
+    mode: {usage: "mode", description: "Switches between one at a time and accumulate."}
+    rename: {usage: "rename <id> <name>", description: "Renames a waypoint."}
+    color: {usage: "color <id> <text|icon|background> <color>", description: "Changes a color of a waypoint."}
+    favorite: {usage: "favorite <id>", description: "Marks or unmarks a waypoint as favorite."}
+    share: {usage: "share <id> <player>", description: "Gives a copy of the waypoint to another player."}
+    delete: {usage: "delete <id>", description: "Deletes a waypoint."}
+    admin-help: {usage: "admin help [page]", description: "Shows every command (user and admin)."}
+    admin-list: {usage: "admin list <player> [page]", description: "Lists a player's waypoints."}
+    admin-menu: {usage: "admin menu <player>", description: "Edits a player's waypoints from the menu."}
+    admin-info: {usage: "admin info <player>", description: "Waypoint data of a player."}
+    admin-tp: {usage: "admin tp <player> <id>", description: "Teleports you to a player's waypoint."}
+    admin-create: {usage: "admin create <player> <name>", description: "Creates a waypoint for a player where you stand."}
+    admin-rename: {usage: "admin rename <player> <id> <name>", description: "Renames a player's waypoint."}
+    admin-color: {usage: "admin color <player> <id> <text|icon|background> <color>", description: "Changes a color of a player's waypoint."}
+    admin-delete: {usage: "admin delete <player> <id>", description: "Deletes a player's waypoint."}
+    admin-clear: {usage: "admin clear <player>", description: "Deletes every waypoint of a player."}
+    restart: {usage: "restart", description: "Reloads the configuration (not the database)."}
+
+pages:
+  previous: "&b&l« Previous "
+  previous-disabled: "&8« Previous "
+  next: " &b&lNext »"
+  next-disabled: " &8Next »"
+  current: "&7[&f{page}&7/&f{pages}&7]"
+  previous-hover:
+    - "&7Go to the previous page"
+  next-hover:
+    - "&7Go to the next page"
+
+list:
+  header:
+    - "&8&m        &r &b&lYour waypoints &8(&f{count}&8/&f{limit}&8) &7Mode: &f{mode} &8&m        "
+  admin-header:
+    - "&8&m        &r &c&lWaypoints of {owner} &8(&f{count}&8) &8&m        "
+  empty:
+    - " &7No waypoints yet. Create one with &f/{cmd} create <name>&7."
+  # Placeholders: {visible} {favorite} {icon_color} {icon} {name} {x} {y} {z} {world} {distance} {created}
+  entry: " {visible} {favorite}{icon_color}{icon} {name} &8» &7{x}, {y}, {z} &8(&7{world}&8)"
+  hover:
+    - "{icon_color}{icon} {name}"
+    - "&7World: &f{world}"
+    - "&7Coordinates: &f{x}, {y}, {z}"
+    - "&7Distance: &f{distance}"
+    - "&7Created: &f{created}"
+    - ""
+    - "&eClick &7to show or hide"
+    - "&eShift + click &7to write its ID in chat"
+  admin-hover:
+    - "{icon_color}{icon} {name}"
+    - "&7World: &f{world}"
+    - "&7Coordinates: &f{x}, {y}, {z}"
+    - "&7Created: &f{created}"
+    - "&7ID: &f{code}"
+    - ""
+    - "&eClick &7to edit it"
+  hover-id:
+    - "&7ID: &f{code}"
+  visible-marker: "&a●"
+  hidden-marker: "&8○"
+  favorite-marker: "&e★ "
+  other-world: "other world"
+
+placeholders:
+  mode-single: "one at a time"
+  mode-accumulate: "accumulate"
+  none: "none"
+  answer-yes: "yes"
+  answer-no: "no"
+  other-world: "other world"
+
+colors:
+  white: "&fWhite"
+  light_gray: "&7Light gray"
+  gray: "&8Gray"
+  black: "&0Black"
+  brown: "&#8B5A2BBrown"
+  red: "&cRed"
+  orange: "&6Orange"
+  yellow: "&eYellow"
+  lime: "&aLime"
+  green: "&2Green"
+  cyan: "&3Cyan"
+  light_blue: "&bLight blue"
+  blue: "&9Blue"
+  purple: "&5Purple"
+  magenta: "&dMagenta"
+  pink: "&#FFB6C1Pink"
+
+menu:
+  # Added to the lore of buttons without permission (when menus.hide-items-without-permission is false).
+  no-permission-lore:
+    - ""
+    - "&c✖ You don't have permission for this"
+  main:
+    title: "&8Your waypoints &7({page}/{pages})"
+    admin-title: "&4Waypoints of {owner} &7({page}/{pages})"
+    waypoint:
+      name: "{icon_color}{icon} {name}"
+      # Lines left empty by an empty placeholder (like {favorite}) are removed automatically.
+      lore:
+        - "{favorite}"
+        - "&7World: &f{world}"
+        - "&7Coordinates: &f{x}, {y}, {z}"
+        - "&7Distance: &f{distance}"
+        - "&7Created: &f{created}"
+        - "&7Status: {status}"
+        - ""
+        - "&eLeft click &7to view"
+        - "&eRight click &7to edit"
+      admin-lore:
+        - "{favorite}"
+        - "&7World: &f{world}"
+        - "&7Coordinates: &f{x}, {y}, {z}"
+        - "&7Created: &f{created}"
+        - "&7ID: &f{code}"
+        - ""
+        - "&eClick &7to edit"
+      visible: "&aVisible"
+      hidden: "&7Hidden"
+      favorite: "&e★ Favorite"
+      other-world: "other world"
+    items:
+      filler: {name: " "}
+      empty:
+        name: "&7You have no waypoints yet"
+        lore:
+          - "&7Create one with the book below"
+          - "&7or with &f/{cmd} create <name>"
+      info:
+        name: "&b&lWaypoints of {owner}"
+        lore:
+          - "&7Waypoints: &f{count}"
+          - "&7Visible: &f{visible}"
+      view-mode-single:
+        name: "&eView: &fone at a time"
+        lore:
+          - "&7Picking a waypoint hides"
+          - "&7the one that was visible."
+          - ""
+          - "&eClick &7to switch to &faccumulate"
+      view-mode-accumulate:
+        name: "&eView: &faccumulate"
+        lore:
+          - "&7Picked waypoints add up"
+          - "&7to the visible ones."
+          - ""
+          - "&eClick &7to switch to &fone at a time"
+      hide-all:
+        name: "&cHide all"
+        lore:
+          - "&7Removes every waypoint from view."
+          - "&7They stay in your list."
+      previous-page: {name: "&b« Previous page", lore: ["&7Page {page} of {pages}"]}
+      previous-page-disabled: {name: "&8« Previous page"}
+      page-info: {name: "&fPage {page}/{pages}"}
+      next-page: {name: "&bNext page »", lore: ["&7Page {page} of {pages}"]}
+      next-page-disabled: {name: "&8Next page »"}
+      create:
+        name: "&aCreate waypoint here"
+        lore:
+          - "&7Saves your current position"
+          - "&7with the name you type."
+      close: {name: "&cClose"}
+  edit:
+    title: "&8Edit: {name_plain}"
+    items:
+      filler: {name: " "}
+      preview:
+        name: "{icon_color}{icon} {name}"
+        lore:
+          - "&7World: &f{world}"
+          - "&7Coordinates: &f{x}, {y}, {z}"
+          - "&7Created: &f{created}"
+      rename:
+        name: "&eRename"
+        lore:
+          - "&7Current: {name}"
+          - ""
+          - "&eClick &7to type a new one"
+      text-color:
+        name: "&eText color"
+        lore:
+          - "&7Current: {text_color_name}"
+      icon:
+        name: "&eIcon: {icon_color}{icon}"
+        lore:
+          - "&7The symbol shown before the name."
+          - ""
+          - "&eClick &7to pick another"
+      icon-color:
+        name: "&eIcon color"
+        lore:
+          - "&7Current: {icon_color_name}"
+      background-color:
+        name: "&eBackground color"
+        lore:
+          - "&7Current: {background_name}"
+      favorite-add:
+        name: "&e★ Add to favorites"
+        lore:
+          - "&7Favorites come first in the list."
+      favorite-remove:
+        name: "&7☆ Remove from favorites"
+        lore:
+          - "&7It goes back to date order."
+      share:
+        name: "&bShare"
+        lore:
+          - "&7Gives a copy to another player."
+          - "&7The copy will be theirs only."
+      teleport:
+        name: "&dTeleport"
+        lore:
+          - "&7Admins only."
+      back: {name: "&7« Back"}
+      delete:
+        name: "&cDelete"
+        lore:
+          - "&7You will be asked to confirm."
+  color:
+    title:
+      text: "&8Text color"
+      icon: "&8Icon color"
+      background: "&8Background color"
+    color-item:
+      name: "{color}"
+      lore:
+        - "&7Code: &f{hex}"
+      selected:
+        - ""
+        - "&a✔ Selected"
+      click:
+        - ""
+        - "&eClick &7to apply"
+      locked:
+        - ""
+        - "&c✖ You don't have permission for this color"
+    items:
+      filler: {name: " "}
+      back: {name: "&7« Back"}
+      previous-page: {name: "&b« Previous page"}
+      previous-page-disabled: {name: "&8« Previous page"}
+      page-info: {name: "&fPage {page}/{pages}"}
+      next-page: {name: "&bNext page »"}
+      next-page-disabled: {name: "&8Next page »"}
+  icon:
+    title: "&8Pick an icon"
+    icon-item:
+      name: "&f{new_icon}"
+      lore:
+        - "&7It will look like:"
+        - "{icon_color}{new_icon} {name}"
+      selected:
+        - ""
+        - "&a✔ Current icon"
+      click:
+        - ""
+        - "&eClick &7to use it"
+    items:
+      filler: {name: " "}
+      back: {name: "&7« Back"}
+      previous-page: {name: "&b« Previous page"}
+      previous-page-disabled: {name: "&8« Previous page"}
+      page-info: {name: "&fPage {page}/{pages}"}
+      next-page: {name: "&bNext page »"}
+      next-page-disabled: {name: "&8Next page »"}
+  confirm-delete:
+    title: "&4Delete this waypoint?"
+    items:
+      filler: {name: " "}
+      confirm:
+        name: "&a✔ Yes, delete"
+        lore:
+          - "&7This can't be undone."
+      preview:
+        name: "{icon_color}{icon} {name}"
+        lore:
+          - "&7{world} &8- &7{x}, {y}, {z}"
+      cancel: {name: "&c✖ No, go back"}
