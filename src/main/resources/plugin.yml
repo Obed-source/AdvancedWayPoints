@@ -76,6 +76,9 @@ permissions:
   wp.teleport.death:
     description: Teleport to own death waypoints. Prices in death-waypoint.costs.teleport.
     default: op
+  wp.teleport.crossworld:
+    description: Teleport to own waypoints (normal and death) in another world. Without it, only the current world.
+    default: op
   wp.name.format:
     description: Use & color codes in waypoint names.
     default: op

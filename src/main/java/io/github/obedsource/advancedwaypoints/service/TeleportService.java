@@ -93,6 +93,14 @@ public final class TeleportService implements Listener {
      * @param admin admin teleport: wp.admin.tp, no price, no countdown
      */
     public ActionResult teleport(Player player, OwnerData owner, String input, boolean admin) {
+        Pending running = pending.get(player.getUniqueId());
+        if (running != null) {
+            // A new request (same or another waypoint) cancels the running countdown; admins go on instantly
+            cancel(player.getUniqueId(), null);
+            if (!admin) {
+                return ActionResult.fail("teleport.cancelled-request", waypoints.placeholders(running.waypoint));
+            }
+        }
         Optional<Waypoint> found = waypoints.resolve(owner, input);
         if (!found.isPresent()) {
             return waypoints.notFound(input);
@@ -111,13 +119,16 @@ public final class TeleportService implements Listener {
         if (waypoint.toLocation() == null) {
             return ActionResult.fail("messages.world-not-loaded", waypoints.placeholders(waypoint));
         }
+        if (!admin && !canReachWorld(player, waypoint)) {
+            return ActionResult.fail("messages.teleport-other-world", waypoints.placeholders(waypoint));
+        }
         CostSpec cost = admin ? CostSpec.FREE : costOf(waypoint);
         Map<String, String> ph = Text.merge(waypoints.placeholders(waypoint), costs.placeholders(cost));
         if (costs.isCharged(player, cost) && !costs.canAfford(player, cost)) {
             return ActionResult.fail("messages.cost.not-enough", ph);
         }
         if (admin || !s.countdownEnabled) {
-            return finish(player, waypoint, cost);
+            return finish(player, waypoint, cost, admin);
         }
         cancel(player.getUniqueId(), null);
         Pending request = new Pending(waypoint, owner, cost, player.getLocation(), s.countdownSeconds);
@@ -151,7 +162,7 @@ public final class TeleportService implements Listener {
         if (request.secondsLeft <= 0) {
             pending.remove(player.getUniqueId(), request);
             request.task.cancel();
-            feedback.send(player, finish(player, request.waypoint, request.cost));
+            feedback.send(player, finish(player, request.waypoint, request.cost, false));
             return;
         }
         int left = request.secondsLeft;
@@ -163,11 +174,24 @@ public final class TeleportService implements Listener {
         }
     }
 
-    private ActionResult finish(Player player, Waypoint waypoint, CostSpec cost) {
+    /**
+     * Player teleports stay in the player's world unless they have wp.teleport.crossworld.
+     * Admin teleports (wp.admin.tp) are never limited.
+     */
+    public boolean canReachWorld(Player player, Waypoint waypoint) {
+        return player.getWorld().getName().equals(waypoint.getWorld())
+                || player.hasPermission(Permissions.TELEPORT_CROSS_WORLD);
+    }
+
+    private ActionResult finish(Player player, Waypoint waypoint, CostSpec cost, boolean admin) {
         Location location = waypoint.toLocation();
         Map<String, String> ph = Text.merge(waypoints.placeholders(waypoint), costs.placeholders(cost));
         if (location == null) {
             return ActionResult.fail("messages.world-not-loaded", ph);
+        }
+        // Checked again here: the player may have changed world during the countdown
+        if (!admin && !canReachWorld(player, waypoint)) {
+            return ActionResult.fail("messages.teleport-other-world", ph);
         }
         boolean pay = costs.isCharged(player, cost);
         if (pay && !costs.charge(player, cost)) {

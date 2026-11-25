@@ -193,6 +193,8 @@ share:
 
 teleport:
   # Teleporting to own waypoints (permission wp.teleport). Admins always can with wp.admin.tp.
+  # Players only teleport to waypoints in the world they are in; wp.teleport.crossworld lets them
+  # teleport to other worlds (normal and death waypoints). Admin teleports have no world limit.
   enabled: true
   # Shift + left click on a waypoint in the menu teleports there (shown in the lore only to players
   # who have the permission).
@@ -201,6 +203,7 @@ teleport:
   in-edit-menu: true
   # Wait before teleporting players (normal and death waypoints). Admin teleports are instant.
   # Messages: every 10 seconds, then every 5 from 10, then every second from 5.
+  # Asking to teleport again (same or another waypoint) during the countdown cancels it.
   countdown:
     enabled: false
     seconds: 5
@@ -215,6 +218,12 @@ death-waypoint:
   worlds:
     # disabled, whitelist or blacklist, like restrictions.worlds.
     mode: blacklist
+    list: []
+  # WorldGuard regions where a death waypoint may be left (only when WorldGuard is installed).
+  # Entries can be "region" or "world:region". Independent from restrictions.regions.
+  regions:
+    # disabled, whitelist (only inside listed regions) or blacklist (never inside listed regions).
+    mode: disabled
     list: []
   # Seconds until it disappears (shown on the label). 0 = it never disappears.
   duration-seconds: 600

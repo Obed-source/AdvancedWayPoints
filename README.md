@@ -74,10 +74,10 @@ If the chosen mode isn't available on your server, the next one is used.
 `/wp share <id> <player>` sends an online player a chat message with clickable **[ACCEPT]** and **[DECLINE]** buttons. If they accept, they get their own copy, shown to them right away, and the sender pays the price (if any). No link remains between the two. Sharing can be switched off for normal waypoints and for death waypoints separately.
 
 ### Death waypoints
-On by default, with a skull icon, red text and a countdown on the label. Two modes: **ACCUMULATE** keeps up to 3 deaths (configurable), replacing the oldest, each with its own timer; **LATEST** keeps only the last one. Death points sit above everything else in the menu, even favorites, and their look is locked for players. They have their own switches for sharing and teleporting, their own permission (`wp.teleport.death`) and their own prices. You choose the duration, the worlds and whether they use a waypoint slot.
+On by default, with a skull icon, red text and a countdown on the label. Two modes: **ACCUMULATE** keeps up to 3 deaths (configurable), replacing the oldest, each with its own timer; **LATEST** keeps only the last one. Death points sit above everything else in the menu, even favorites, and their look is locked for players. They have their own switches for sharing and teleporting, their own permission (`wp.teleport.death`) and their own prices. You choose the duration, the worlds and WorldGuard regions where they can be left (their own whitelist or blacklist, separate from the creation rules) and whether they use a waypoint slot.
 
 ### Teleport
-`wp.teleport` for normal waypoints, `wp.teleport.death` for death points, `wp.admin.tp` for admins: three separate permissions. Use shift + left click in the menu, the edit menu button or `/wp tp <id>`. An optional countdown (off by default) announces every 10 seconds, then every 5, then every second, and can be cancelled by taking damage or by moving away.
+`wp.teleport` for normal waypoints, `wp.teleport.death` for death points, `wp.admin.tp` for admins: three separate permissions. Players only teleport within the world they are in; `wp.teleport.crossworld` lets them reach waypoints in other worlds, and admin teleports have no world limit. Use shift + left click in the menu, the edit menu button or `/wp tp <id>`. An optional countdown (off by default) announces every 10 seconds, then every 5, then every second, and can be cancelled by taking damage or by moving away. Asking to teleport again, to the same waypoint or another, cancels it too.
 
 ### Rules and limits
 - Waypoint limits from permissions: `wp.limit.5`, `wp.limit.20`... the highest wins.
@@ -142,6 +142,7 @@ The plugin grants nothing itself; use your permission plugin.
 | `wp.limit.unlimited` | op | No limit |
 | `wp.teleport` | op | Teleport to own waypoints |
 | `wp.teleport.death` | op | Teleport to own death waypoints |
+| `wp.teleport.crossworld` | op | Teleport to own waypoints in another world (normal and death) |
 | `wp.color.text` / `wp.color.icon` / `wp.color.background` | everyone | Open each color picker |
 | `wp.color.<type>.<color>` | op | Use that color, e.g. `wp.color.background.red`. Default colors are always allowed |
 | `wp.color.<type>.custom` | op | Custom colors by command (`#FF8800`, `&c`, `&#FF8800`) |

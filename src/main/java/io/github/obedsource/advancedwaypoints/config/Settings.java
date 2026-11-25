@@ -128,6 +128,8 @@ public final class Settings {
     public final boolean deathEnabled;
     public final RestrictionMode deathWorldMode;
     public final Set<String> deathWorlds;
+    public final RestrictionMode deathRegionMode;
+    public final Set<String> deathRegions;
     public final long deathDurationSeconds;
     /** ACCUMULATE keeps up to deathMax death points (oldest replaced), LATEST keeps only the last one. */
     public enum DeathMode { ACCUMULATE, LATEST }
@@ -269,6 +271,8 @@ public final class Settings {
         deathEnabled = c.getBoolean("death-waypoint.enabled", true);
         deathWorldMode = RestrictionMode.parse(c.getString("death-waypoint.worlds.mode"));
         deathWorlds = lowerSet(c.getStringList("death-waypoint.worlds.list"));
+        deathRegionMode = RestrictionMode.parse(c.getString("death-waypoint.regions.mode"));
+        deathRegions = lowerSet(c.getStringList("death-waypoint.regions.list"));
         deathDurationSeconds = Math.max(0L, c.getLong("death-waypoint.duration-seconds", 600L));
         DeathMode mode;
         try {

@@ -69,6 +69,7 @@ messages:
   teleported: "&aTeletransportado a {name}&a."
   teleported-paid: "&aTeletransportado a {name} &apor &f{price}&a."
   teleport-disabled: "&cEl teletransporte a waypoints está desactivado."
+  teleport-other-world: "&c{name} &cestá en otro mundo. Solo puedes teletransportarte a waypoints de tu mundo actual."
   death-created: "&cMoriste. &7Un waypoint {icon_color}{icon} {name} &7marca el lugar durante &f{time_left}&7."
   death-created-permanent: "&cMoriste. &7Un waypoint {icon_color}{icon} {name} &7marca el lugar."
   death-expired: "&7Tu waypoint {icon_color}{icon} {name} &7desapareció."
@@ -173,6 +174,8 @@ teleport:
   countdown: "&eTeletransporte en &f{seconds}&e..."
   cancelled-damage: "&cTeletransporte cancelado: recibiste daño."
   cancelled-movement: "&cTeletransporte cancelado: te moviste."
+  # Cuando el jugador pide otro teletransporte (al mismo waypoint o a otro) durante la cuenta regresiva.
+  cancelled-request: "&cTeletransporte a {name} &ccancelado."
 
 death:
   # Nombre de los waypoints de muerte (el jugador puede renombrarlos).

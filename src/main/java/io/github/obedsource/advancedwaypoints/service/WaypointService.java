@@ -237,9 +237,7 @@ public final class WaypointService {
         if (!s.deathEnabled || location.getWorld() == null || !player.hasPermission(Permissions.DEATH)) {
             return null;
         }
-        String world = location.getWorld().getName().toLowerCase(Locale.ROOT);
-        if ((s.deathWorldMode == Settings.RestrictionMode.WHITELIST && !s.deathWorlds.contains(world))
-                || (s.deathWorldMode == Settings.RestrictionMode.BLACKLIST && s.deathWorlds.contains(world))) {
+        if (!restrictions.allowsDeath(location)) {
             return null;
         }
         List<Waypoint> previous = new ArrayList<>();

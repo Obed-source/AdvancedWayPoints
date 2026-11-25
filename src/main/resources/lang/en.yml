@@ -69,6 +69,7 @@ messages:
   teleported: "&aTeleported to {name}&a."
   teleported-paid: "&aTeleported to {name} &afor &f{price}&a."
   teleport-disabled: "&cTeleporting to waypoints is disabled."
+  teleport-other-world: "&c{name} &cis in another world. You can only teleport to waypoints in your current world."
   death-created: "&cYou died. &7A {icon_color}{icon} {name} &7waypoint marks the spot for &f{time_left}&7."
   death-created-permanent: "&cYou died. &7A {icon_color}{icon} {name} &7waypoint marks the spot."
   death-expired: "&7Your {icon_color}{icon} {name} &7waypoint disappeared."
@@ -173,6 +174,8 @@ teleport:
   countdown: "&eTeleporting in &f{seconds}&e..."
   cancelled-damage: "&cTeleport cancelled: you took damage."
   cancelled-movement: "&cTeleport cancelled: you moved."
+  # When the player asks to teleport again (same or another waypoint) during a countdown.
+  cancelled-request: "&cTeleport to {name} &ccancelled."
 
 death:
   # Name of death waypoints (players can rename them).

@@ -25,6 +25,8 @@ public final class Permissions {
     public static final String TELEPORT = "wp.teleport";
     /** Teleport to own death waypoints (separate from wp.teleport and wp.admin.tp). */
     public static final String TELEPORT_DEATH = "wp.teleport.death";
+    /** Teleport to own waypoints (normal and death) that are in another world than the player. */
+    public static final String TELEPORT_CROSS_WORLD = "wp.teleport.crossworld";
     /** Base node for color changes; append "text", "background" or "icon". */
     public static final String COLOR_PREFIX = "wp.color.";
     public static final String LIMIT_PREFIX = "wp.limit.";
