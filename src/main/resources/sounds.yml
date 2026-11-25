@@ -9,7 +9,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 2
+config-version: 3
 
 # Master switch for every sound of the plugin.
 enabled: true
@@ -59,7 +59,9 @@ sounds:
   # Text input opened / cancelled.
   input-open: {sound: "minecraft:block.note_block.pling", volume: 0.8, pitch: 1.5, enabled: true}
   input-cancel: {sound: "minecraft:block.note_block.bass", volume: 0.8, pitch: 0.7, enabled: true}
-  # Admin teleport.
+  # Teleport.
   teleport: {sound: "minecraft:entity.enderman.teleport", volume: 0.8, pitch: 1.0, enabled: true}
+  # Each countdown message before a teleport.
+  teleport-countdown: {sound: "minecraft:block.note_block.hat", volume: 0.8, pitch: 1.4, enabled: true}
   # /wp restart.
   restart: {sound: "minecraft:block.beacon.power_select", volume: 0.8, pitch: 1.4, enabled: true}

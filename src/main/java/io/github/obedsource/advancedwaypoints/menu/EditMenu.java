@@ -56,22 +56,33 @@ final class EditMenu extends Menu {
         ph.put("background_name", settings.palette.byRgb(waypoint.getBackgroundArgb())
                 .map(e -> messages.raw("colors." + e.key())).orElse(WaypointFormat.hex(waypoint.getBackgroundArgb())));
 
+        ph.putAll(service.pricePlaceholders(viewer, waypoint));
+
         filler();
         button("preview", ph, null);
-        guardedButton("rename", Permissions.RENAME, ph, click -> askRename(waypoint));
-        guardedButton("text-color", Permissions.color(ColorTarget.TEXT.key()), ph, click -> openColors(ColorTarget.TEXT));
-        guardedButton("icon-color", Permissions.color(ColorTarget.ICON.key()), ph, click -> openColors(ColorTarget.ICON));
-        guardedButton("background-color", Permissions.color(ColorTarget.BACKGROUND.key()), ph, click -> openColors(ColorTarget.BACKGROUND));
-        guardedButton("icon", Permissions.ICON, ph, click -> {
-            service.sound(viewer, SoundService.MENU_CLICK);
-            service.openIcon(viewer, owner, admin, code, returnPage, 0);
-        });
-        guardedButton(waypoint.isFavorite() ? "favorite-remove" : "favorite-add", Permissions.FAVORITE, ph, click -> {
-            service.feedback().send(viewer, service.waypoints().toggleFavorite(owner, code));
-            refresh();
-        });
-        if (!admin || owner.owner().equals(viewer.getUniqueId())) {
-            guardedButton("share", Permissions.SHARE, ph, click -> askShare());
+        // Death points keep their look: only admins may change name, colors and icon.
+        boolean editable = !waypoint.isDeath() || admin;
+        if (editable) {
+            guardedButton("rename", Permissions.RENAME, ph, click -> askRename(waypoint));
+            guardedButton("text-color", Permissions.color(ColorTarget.TEXT.key()), ph, click -> openColors(ColorTarget.TEXT));
+            guardedButton("icon-color", Permissions.color(ColorTarget.ICON.key()), ph, click -> openColors(ColorTarget.ICON));
+            guardedButton("background-color", Permissions.color(ColorTarget.BACKGROUND.key()), ph, click -> openColors(ColorTarget.BACKGROUND));
+            guardedButton("icon", Permissions.ICON, ph, click -> {
+                service.sound(viewer, SoundService.MENU_CLICK);
+                service.openIcon(viewer, owner, admin, code, returnPage, 0);
+            });
+        } else {
+            button("death-locked", ph, null);
+        }
+        if (!waypoint.isDeath()) {
+            guardedButton(waypoint.isFavorite() ? "favorite-remove" : "favorite-add", Permissions.FAVORITE, ph, click -> {
+                service.feedback().send(viewer, service.waypoints().toggleFavorite(owner, code));
+                refresh();
+            });
+        }
+        if ((!admin || owner.owner().equals(viewer.getUniqueId())) && service.shares().isEnabled(waypoint)) {
+            boolean sharePaid = service.waypoints().costs().isCharged(viewer, service.shares().costOf(waypoint));
+            guardedButton(sharePaid ? "share-paid" : "share", Permissions.SHARE, ph, click -> askShare());
         }
         guardedButton("delete", Permissions.DELETE, ph, click -> {
             service.sound(viewer, SoundService.MENU_CLICK);
@@ -79,18 +90,19 @@ final class EditMenu extends Menu {
         });
         // Teleport: admins always (free); players when enabled in config and allowed (it may cost).
         java.util.function.Consumer<org.bukkit.event.inventory.ClickType> teleport = click -> {
-            ActionResult result = service.waypoints().teleport(viewer, owner, code, admin);
+            ActionResult result = service.teleports().teleport(viewer, owner, code, admin);
             if (result.success()) {
                 service.scheduler().runAtEntityLater(viewer, viewer::closeInventory, 1L);
             }
             service.feedback().send(viewer, result);
         };
-        Map<String, String> teleportPh = Text.merge(ph, service.waypoints().costs().placeholders(settings.teleportCost));
-        boolean paid = !admin && service.waypoints().costs().isCharged(viewer, settings.teleportCost);
+        boolean typeEnabled = waypoint.isDeath() ? settings.deathTeleportEnabled : settings.teleportEnabled;
+        boolean paid = !admin && service.waypoints().costs().isCharged(viewer, service.teleports().costOf(waypoint));
         if (admin) {
-            guardedButton("teleport", Permissions.ADMIN_TP, teleportPh, teleport);
-        } else if (settings.teleportEnabled && settings.teleportInEditMenu) {
-            guardedButton(paid ? "teleport-paid" : "teleport", Permissions.TELEPORT, teleportPh, teleport);
+            guardedButton("teleport", Permissions.ADMIN_TP, ph, teleport);
+        } else if (typeEnabled && settings.teleportInEditMenu) {
+            guardedButton(paid ? "teleport-paid" : "teleport",
+                    waypoint.isDeath() ? Permissions.TELEPORT_DEATH : Permissions.TELEPORT, ph, teleport);
         }
         button("back", ph, click -> {
             service.sound(viewer, SoundService.MENU_BACK);
@@ -127,10 +139,10 @@ final class EditMenu extends Menu {
 
     private void askShare() {
         service.input().request(viewer, new InputRequest("share", "", "/" + service.command() + " share " + code,
-                text -> service.waypoints().share(viewer, owner, code, text).thenAccept(result -> {
-                    service.feedback().send(viewer, result);
+                text -> {
+                    service.feedback().send(viewer, service.shares().request(viewer, owner, code, text));
                     service.openEdit(viewer, owner, admin, code, returnPage);
-                }),
+                },
                 this::backHere));
     }
 

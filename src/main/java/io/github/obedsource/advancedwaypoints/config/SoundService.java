@@ -41,6 +41,7 @@ public final class SoundService {
     public static final String INPUT_OPEN = "input-open";
     public static final String INPUT_CANCEL = "input-cancel";
     public static final String TELEPORT = "teleport";
+    public static final String TELEPORT_COUNTDOWN = "teleport-countdown";
     public static final String RESTART = "restart";
 
     private static final class Entry {

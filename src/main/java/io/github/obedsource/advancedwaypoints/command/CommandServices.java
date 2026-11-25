@@ -6,6 +6,8 @@ import io.github.obedsource.advancedwaypoints.config.SoundService;
 import io.github.obedsource.advancedwaypoints.menu.MenuService;
 import io.github.obedsource.advancedwaypoints.scheduler.PlatformScheduler;
 import io.github.obedsource.advancedwaypoints.service.Feedback;
+import io.github.obedsource.advancedwaypoints.service.ShareService;
+import io.github.obedsource.advancedwaypoints.service.TeleportService;
 import io.github.obedsource.advancedwaypoints.service.WaypointService;
 import io.github.obedsource.advancedwaypoints.session.SessionManager;
 
@@ -19,6 +21,8 @@ public record CommandServices(
         Supplier<SoundService> sounds,
         SessionManager sessions,
         WaypointService waypoints,
+        ShareService shares,
+        TeleportService teleports,
         MenuService menus,
         Feedback feedback,
         ChatPages pages,

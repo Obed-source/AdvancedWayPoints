@@ -252,20 +252,30 @@ final class UserCommands {
 
     static final class Share extends SubCommand {
         Share(CommandServices s) {
-            super(s, "share", List.of("compartir"), Permissions.SHARE, true);
+            // Accepting or declining needs no permission; sending needs wp.share.
+            super(s, "share", List.of("compartir"), null, true);
         }
 
         @Override
         public void execute(CommandSender sender, String[] args) {
+            Player player = (Player) sender;
+            if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("decline"))) {
+                services.feedback().send(player, args[0].equalsIgnoreCase("accept")
+                        ? services.shares().accept(player, args[1])
+                        : services.shares().decline(player, args[1]));
+                return;
+            }
+            if (!player.hasPermission(Permissions.SHARE)) {
+                services.feedback().noPermission(player);
+                return;
+            }
             if (args.length < 2) {
                 usage(sender, "share");
                 return;
             }
-            Player player = (Player) sender;
             OwnerData data = self(player);
             if (data != null) {
-                services.waypoints().share(player, data, args[0], args[1])
-                        .thenAccept(result -> services.feedback().send(player, result));
+                services.feedback().send(player, services.shares().request(player, data, args[0], args[1]));
             }
         }
 
@@ -304,15 +314,12 @@ final class UserCommands {
 
     static final class Teleport extends SubCommand {
         Teleport(CommandServices s) {
-            super(s, "tp", List.of("teleport", "teletransportar"), Permissions.TELEPORT, true);
+            // Permission depends on the waypoint (wp.teleport or wp.teleport.death): checked by the service.
+            super(s, "tp", List.of("teleport", "teletransportar"), null, true);
         }
 
         @Override
         public void execute(CommandSender sender, String[] args) {
-            if (!services.config().teleportEnabled) {
-                services.feedback().error(sender, "messages.teleport-disabled", null);
-                return;
-            }
             if (args.length == 0) {
                 usage(sender, "teleport");
                 return;
@@ -320,7 +327,7 @@ final class UserCommands {
             Player player = (Player) sender;
             OwnerData data = self(player);
             if (data != null) {
-                services.feedback().send(player, services.waypoints().teleport(player, data, join(args, 0), false));
+                services.feedback().send(player, services.teleports().teleport(player, data, join(args, 0), false));
             }
         }
 

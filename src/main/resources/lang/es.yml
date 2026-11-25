@@ -7,7 +7,7 @@
 # ============================================================
 
 # No editar: se usa para actualizar este archivo automáticamente.
-config-version: 2
+config-version: 3
 
 messages:
   no-permission: "&cNo tienes permiso para hacer eso."
@@ -45,9 +45,8 @@ messages:
   deleted: "&cWaypoint {name} &celiminado."
   share-self: "&cNo puedes compartir un waypoint contigo mismo."
   share-target-limit: "&c{player} llegó a su límite de waypoints."
-  shared: "&aCompartiste {name} &acon &f{player}&a."
-  shared-paid: "&aCompartiste {name} &acon &f{player} &apor &f{price}&a."
-  share-received: "&b{player} &ate compartió el waypoint {icon_color}{icon} {name}&a. Ya lo puedes ver."
+  shared: "&a{player} aceptó {name}&a."
+  shared-paid: "&a{player} aceptó {name}&a. Pagaste &f{price}&a."
   shown: "&aMostrando {icon_color}{icon} {name}&a."
   shown-accumulate: "&aMostrando también {icon_color}{icon} {name}&a."
   hidden: "&7Ocultaste {name}&7."
@@ -73,6 +72,21 @@ messages:
   death-created: "&cMoriste. &7Un waypoint {icon_color}{icon} {name} &7marca el lugar durante &f{time_left}&7."
   death-created-permanent: "&cMoriste. &7Un waypoint {icon_color}{icon} {name} &7marca el lugar."
   death-expired: "&7Tu waypoint {icon_color}{icon} {name} &7desapareció."
+  death-not-editable: "&cLos waypoints de muerte no se pueden modificar."
+  share-disabled: "&cCompartir waypoints está desactivado."
+  share-death-disabled: "&cLos waypoints de muerte no se pueden compartir."
+  share-request-sent: "&aSolicitud enviada a &f{player}&a. Tiene &f{seconds}s &apara aceptar {name}&a."
+  share-target-loading: "&c{player} aún está cargando, intenta en un segundo."
+  share-request-not-found: "&cEsa solicitud ya no existe."
+  share-sender-offline: "&c{player} ya no está conectado."
+  share-waypoint-gone: "&cEse waypoint ya no existe."
+  share-failed-cost: "&c{player} aceptó {name}&c, pero no pudiste pagar &f{price}&c."
+  share-sender-cannot-pay: "&c{player} no puede pagar por compartirlo ahora."
+  share-accepted: "&aAceptaste {icon_color}{icon} {name} &ade &f{player}&a. Ya lo puedes ver."
+  share-declined: "&7Rechazaste el waypoint de &f{player}&7."
+  share-declined-sender: "&c{player} rechazó tu waypoint."
+  share-expired-sender: "&7{player} no respondió tu solicitud."
+  share-expired-receiver: "&7La solicitud de {player} expiró."
   update-available: "&eHay una nueva versión de AdvancedWayPoints: &f{version}&e. {changelog}"
   update-downloaded: "&aLa versión &f{version} &afue descargada y se instalará al reiniciar el servidor."
 
@@ -125,7 +139,7 @@ help:
     rename: {usage: "rename <id> <nombre>", description: "Cambia el nombre de un waypoint."}
     color: {usage: "color <id> <text|icon|background> <color>", description: "Cambia un color de un waypoint."}
     favorite: {usage: "favorite <id>", description: "Marca o desmarca un waypoint como favorito."}
-    share: {usage: "share <id> <jugador>", description: "Regala una copia del waypoint a otro jugador."}
+    share: {usage: "share <id> <jugador>", description: "Ofrece una copia del waypoint a un jugador conectado."}
     delete: {usage: "delete <id>", description: "Elimina un waypoint."}
     teleport: {usage: "tp <id>", description: "Te teletransporta a uno de tus waypoints."}
     admin-help: {usage: "admin help [página]", description: "Muestra todos los comandos (usuario y admin)."}
@@ -139,6 +153,26 @@ help:
     admin-delete: {usage: "admin delete <jugador> <id>", description: "Elimina el waypoint de un jugador."}
     admin-clear: {usage: "admin clear <jugador>", description: "Elimina todos los waypoints de un jugador."}
     restart: {usage: "restart", description: "Recarga la configuración (no la base de datos)."}
+
+share-request:
+  received: "&b{player} &aquiere compartirte {icon_color}{icon} {name} &7({seconds}s)."
+  accept: "&a&l[ACEPTAR]"
+  separator: " "
+  decline: "&c&l[RECHAZAR]"
+  accept-hover:
+    - "&7Agregar {name} &7a tus waypoints"
+  decline-hover:
+    - "&7Rechazar el waypoint"
+
+teleport:
+  # Al empezar la cuenta regresiva, según el modo de cancelación (teleport.countdown.cancel-on).
+  countdown-start:
+    none: "&eTeletransportando a {name} &een &f{seconds}s&e."
+    damage: "&eTeletransportando a {name} &een &f{seconds}s&e. Si recibes daño se cancela."
+    movement: "&eTeletransportando a {name} &een &f{seconds}s&e. No te muevas."
+  countdown: "&eTeletransporte en &f{seconds}&e..."
+  cancelled-damage: "&cTeletransporte cancelado: recibiste daño."
+  cancelled-movement: "&cTeletransporte cancelado: te moviste."
 
 death:
   # Nombre de los waypoints de muerte (el jugador puede renombrarlos).
@@ -195,6 +229,10 @@ placeholders:
   answer-yes: "sí"
   answer-no: "no"
   other-world: "otro mundo"
+  free: "gratis"
+  never: "nunca"
+  type-normal: "waypoint"
+  type-death: "muerte"
 
 colors:
   white: "&fBlanco"
@@ -224,8 +262,9 @@ menu:
     admin-title: "&4Waypoints de {owner} &7({page}/{pages})"
     waypoint:
       name: "{icon_color}{icon} {name}"
-      # Las líneas que quedan vacías por un marcador vacío (como {favorite} o {teleport}) se quitan solas.
-      # {left_click} dice "mostrar" u "ocultar" según el waypoint; {teleport} solo aparece con permiso.
+      # Cada línea es texto libre. Disponibles: {name} {name_plain} {icon} {icon_color} {text_color} {world} {x} {y} {z}
+      # {distance} {created} {status} {code} {time_left} {favorite} {death} {left_click} {teleport}
+      # {teleport_price} {share_price} {create_price} ("gratis" si a ese jugador no le cuesta nada).
       lines:
         - "{favorite}"
         - "{death}"
@@ -345,8 +384,19 @@ menu:
       share:
         name: "&bCompartir"
         lore:
-          - "&7Regala una copia a otro jugador."
-          - "&7La copia será solo suya."
+          - "&7Envía una copia a otro jugador."
+          - "&7Debe estar conectado y aceptarla."
+      share-paid:
+        name: "&bCompartir"
+        lore:
+          - "&7Envía una copia a otro jugador."
+          - "&7Debe estar conectado y aceptarla."
+          - "&7Precio: &f{share_price}"
+      death-locked:
+        name: "&c☠ Punto de muerte"
+        lore:
+          - "&7Su nombre, colores e icono no se pueden cambiar."
+          - "&7Desaparece en: &f{time_left}"
       teleport:
         name: "&dTeletransportarse"
         lore:

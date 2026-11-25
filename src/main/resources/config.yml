@@ -8,7 +8,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 2
+config-version: 3
 
 # Language file inside /lang (en, es, or any file you create there, e.g. fr -> lang/fr.yml).
 # If the file does not exist, English is used.
@@ -84,6 +84,9 @@ waypoints:
   default-icon: "•"
   # Pick a random icon from the list when a waypoint is created.
   random-icon: true
+  # true = players without wp.icon always get default-icon (they can't pick one anyway).
+  # false = everyone gets a random icon.
+  default-icon-without-permission: false
   # Pick a random icon color (from colors:) when a waypoint is created.
   random-icon-color: true
   # Pick a random text color when a waypoint is created (otherwise default-text-color).
@@ -91,7 +94,7 @@ waypoints:
   # Default colors (keys from colors:). These are always allowed, without permission.
   default-text-color: white
   default-icon-color: white
-  default-background-color: blue
+  default-background-color: black
   # Background opacity, 0 (transparent) to 255 (solid).
   background-alpha: 160
 
@@ -180,9 +183,12 @@ menus:
   hide-items-without-permission: false
 
 share:
-  # Allow sharing with players who are offline (they must have joined before).
-  allow-offline-players: true
-  # Refuse the share when the receiver reached their waypoint limit (online receivers only).
+  # Sharing normal waypoints. Death waypoints have their own switch in death-waypoint.share.
+  enabled: true
+  # The receiver must be online and accept by clicking [Accept] / [Decline] in chat.
+  # Seconds before an unanswered request expires.
+  request-timeout-seconds: 60
+  # Refuse the share when the receiver reached their waypoint limit.
   respect-target-limit: true
 
 teleport:
@@ -193,6 +199,14 @@ teleport:
   shortcut: true
   # Show the teleport button in the edit menu. false = only admins see it.
   in-edit-menu: true
+  # Wait before teleporting players (normal and death waypoints). Admin teleports are instant.
+  # Messages: every 10 seconds, then every 5 from 10, then every second from 5.
+  countdown:
+    enabled: false
+    seconds: 5
+    # What cancels the countdown: NONE, DAMAGE (taking damage) or MOVEMENT (moving away;
+    # checked once per second, no move listener).
+    cancel-on: NONE
 
 # Death waypoint: when a player dies, a waypoint is created where they died.
 death-waypoint:
@@ -204,13 +218,35 @@ death-waypoint:
     list: []
   # Seconds until it disappears (shown on the label). 0 = it never disappears.
   duration-seconds: 600
-  # How many death waypoints a player keeps; older ones are removed on a new death.
-  keep: 1
+  # ACCUMULATE: every death adds a waypoint, up to max; then the oldest is replaced.
+  #             Each one keeps its own countdown.
+  # LATEST: only the last death is kept.
+  mode: ACCUMULATE
+  max: 3
   # Show it right away (follows the player's view mode).
   show-automatically: true
   # Whether death waypoints use one of the player's waypoint slots.
   counts-toward-limit: false
-  # Icon and colors (keys from colors:). Players can change them like any waypoint.
+  # Death waypoints are always listed first and their look can't be changed by players (only admins).
+  # Sharing them, independent from share.enabled.
+  share:
+    enabled: false
+  # Teleporting to them needs wp.teleport.death (separate from wp.teleport and wp.admin.tp).
+  teleport:
+    enabled: true
+  # Their own prices, same format as costs: below.
+  costs:
+    teleport:
+      enabled: false
+      type: MONEY
+      money: 50.0
+      item: {material: ENDER_PEARL, amount: 1, nbt-key: "", nbt-value: "", custom-model-data: 0, name: ""}
+    share:
+      enabled: false
+      type: MONEY
+      money: 50.0
+      item: {material: DIAMOND, amount: 1, nbt-key: "", nbt-value: "", custom-model-data: 0, name: ""}
+  # Icon and colors (keys from colors:).
   icon: "☠"
   icon-color: red
   text-color: red

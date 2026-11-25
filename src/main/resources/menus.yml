@@ -15,7 +15,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 2
+config-version: 3
 
 # Waypoint list (/wp menu).
 main:
@@ -57,6 +57,10 @@ edit:
     favorite-add: {material: NETHER_STAR, slot: 24}
     favorite-remove: {material: FIREWORK_STAR, slot: 24}
     share: {material: WRITABLE_BOOK, slot: 25}
+    # Same button when sharing has a price.
+    share-paid: {material: WRITABLE_BOOK, slot: 25}
+    # Shown on death waypoints instead of the look options (they can't be changed).
+    death-locked: {material: SKELETON_SKULL, slot: 22}
     # Shown to players with wp.teleport (config teleport.in-edit-menu) and to admins.
     teleport: {material: ENDER_PEARL, slot: 31}
     # Same button when teleporting has a price.

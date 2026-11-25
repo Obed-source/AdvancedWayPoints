@@ -48,11 +48,6 @@ public final class WaypointService {
         void refresh(UUID owner);
     }
 
-    /** Tells an online receiver that a waypoint was shared with them. */
-    public interface ShareNotifier {
-        void received(Player receiver, Waypoint copy, String senderName);
-    }
-
     private static final String CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private final Supplier<Settings> settings;
@@ -66,7 +61,6 @@ public final class WaypointService {
     private final Function<String, String> colorNames;
     private final Supplier<String> deathName;
     private ViewRefresher refresher = owner -> { };
-    private ShareNotifier shareNotifier = (receiver, copy, sender) -> { };
 
     public WaypointService(Supplier<Settings> settings, SessionManager sessions, DataStore store, LimitService limits,
                            RestrictionService restrictions, CostService costs, NameValidator names,
@@ -87,10 +81,6 @@ public final class WaypointService {
         this.refresher = refresher;
     }
 
-    public void setShareNotifier(ShareNotifier shareNotifier) {
-        this.shareNotifier = shareNotifier;
-    }
-
     public LimitService limits() {
         return limits;
     }
@@ -102,6 +92,11 @@ public final class WaypointService {
     /** Waypoints of the owner that count toward their limit. */
     public int countForLimit(OwnerData owner) {
         return owner.countForLimit(settings.get().deathCountsTowardLimit);
+    }
+
+    /** Waypoint placeholders plus extra key/value pairs. */
+    public Map<String, String> placeholders(Waypoint waypoint, Object... extra) {
+        return ph(waypoint, extra);
     }
 
     private Map<String, String> ph(Waypoint waypoint, Object... extra) {
@@ -140,7 +135,7 @@ public final class WaypointService {
         return Optional.ofNullable(match);
     }
 
-    private ActionResult notFound(String input) {
+    public ActionResult notFound(String input) {
         return ActionResult.fail("messages.not-found", Text.ph("input", input));
     }
 
@@ -196,7 +191,9 @@ public final class WaypointService {
         }
 
         ColorPalette palette = s.palette;
-        String icon = s.randomIcon ? s.icons.get(ThreadLocalRandom.current().nextInt(s.icons.size())) : s.defaultIcon;
+        boolean fixedIcon = !s.randomIcon
+                || (s.defaultIconWithoutPermission && actor != null && !actor.hasPermission(Permissions.ICON));
+        String icon = fixedIcon ? s.defaultIcon : s.icons.get(ThreadLocalRandom.current().nextInt(s.icons.size()));
         String iconColor = s.randomIconColor ? palette.random().legacy() : legacy(s.defaultIconColorKey, "&f");
         String textColor = s.randomTextColor ? palette.random().legacy() : legacy(s.defaultTextColorKey, "&f");
         int background = argb(s.defaultBackgroundKey);
@@ -233,7 +230,7 @@ public final class WaypointService {
 
     /**
      * Creates the death waypoint of a player where they died, removing their oldest death waypoints
-     * beyond death-waypoint.keep. Returns null when death waypoints do not apply.
+     * beyond death-waypoint.max (1 in LATEST mode). Returns null when death waypoints do not apply.
      */
     public ActionResult createDeath(Player player, OwnerData owner, Location location) {
         Settings s = settings.get();
@@ -252,7 +249,7 @@ public final class WaypointService {
             }
         }
         previous.sort(Comparator.comparingLong(Waypoint::getCreatedAt));
-        while (previous.size() >= s.deathKeep) {
+        while (previous.size() >= s.deathMax) {
             Waypoint oldest = previous.remove(0);
             owner.remove(oldest.getCode());
             store.delete(owner.owner(), oldest.getCode());
@@ -298,35 +295,6 @@ public final class WaypointService {
         return removed;
     }
 
-    // ------------------------------------------------------------------ teleport
-
-    /**
-     * Teleports a player to a waypoint of the owner.
-     *
-     * @param free no price (admins)
-     */
-    public ActionResult teleport(Player player, OwnerData owner, String input, boolean free) {
-        Optional<Waypoint> found = resolve(owner, input);
-        if (!found.isPresent()) {
-            return notFound(input);
-        }
-        Waypoint waypoint = found.get();
-        Location location = waypoint.toLocation();
-        if (location == null) {
-            return ActionResult.fail("messages.world-not-loaded", ph(waypoint));
-        }
-        Settings s = settings.get();
-        boolean pay = !free && costs.isCharged(player, s.teleportCost);
-        if (pay && !costs.charge(player, s.teleportCost)) {
-            return ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.teleportCost));
-        }
-        location.setYaw(player.getLocation().getYaw());
-        location.setPitch(player.getLocation().getPitch());
-        scheduler.teleport(player, location);
-        return ActionResult.ok(pay ? "messages.teleported-paid" : "messages.teleported",
-                Text.merge(ph(waypoint), costs.placeholders(s.teleportCost)), SoundService.TELEPORT, waypoint);
-    }
-
     // ------------------------------------------------------------------ edit
 
     public ActionResult rename(CommandSender actor, OwnerData owner, String input, String rawName, boolean bypass) {
@@ -335,6 +303,9 @@ public final class WaypointService {
             return notFound(input);
         }
         Waypoint waypoint = found.get();
+        if (waypoint.isDeath() && !bypass) {
+            return ActionResult.fail("messages.death-not-editable", ph(waypoint));
+        }
         boolean allowFormat = bypass || actor == null || actor.hasPermission(Permissions.NAME_FORMAT);
         NameValidator.Result name = names.validate(rawName, allowFormat);
         if (!name.ok()) {
@@ -356,6 +327,9 @@ public final class WaypointService {
             return notFound(input);
         }
         Waypoint waypoint = found.get();
+        if (waypoint.isDeath() && !bypass) {
+            return ActionResult.fail("messages.death-not-editable", ph(waypoint));
+        }
         Settings s = settings.get();
         String colorValue = value == null ? "" : value.trim();
         Optional<ColorPalette.Entry> entry = s.palette.get(colorValue);
@@ -431,10 +405,13 @@ public final class WaypointService {
         if (!found.isPresent()) {
             return notFound(input);
         }
+        Waypoint waypoint = found.get();
+        if (waypoint.isDeath() && !bypass) {
+            return ActionResult.fail("messages.death-not-editable", ph(waypoint));
+        }
         if (!bypass && !settings.get().icons.contains(icon)) {
             return ActionResult.fail("messages.icon-invalid");
         }
-        Waypoint waypoint = found.get();
         waypoint.setIcon(icon);
         changed(owner, waypoint, WaypointUpdateEvent.Change.ICON);
         return ActionResult.ok("messages.icon-changed", ph(waypoint), SoundService.ICON, waypoint);
@@ -446,6 +423,10 @@ public final class WaypointService {
             return notFound(input);
         }
         Waypoint waypoint = found.get();
+        if (waypoint.isDeath()) {
+            // Death points are always on top already.
+            return ActionResult.fail("messages.death-not-editable", ph(waypoint));
+        }
         waypoint.setFavorite(!waypoint.isFavorite());
         changed(owner, waypoint, WaypointUpdateEvent.Change.FAVORITE);
         return waypoint.isFavorite()
@@ -490,74 +471,20 @@ public final class WaypointService {
     // ------------------------------------------------------------------ share
 
     /**
-     * Gives a copy of the waypoint to another player. Completes on the actor's thread.
-     * The receiver owns the copy; the sender keeps no link to it.
+     * Gives the receiver their own copy of a waypoint and shows it to them. Used by {@link ShareService}
+     * once the receiver accepted. Returns null when another plugin cancelled it.
      */
-    public CompletableFuture<ActionResult> share(Player actor, OwnerData owner, String input, String targetName) {
-        Optional<Waypoint> found = resolve(owner, input);
-        if (!found.isPresent()) {
-            return CompletableFuture.completedFuture(notFound(input));
-        }
-        if (targetName.equalsIgnoreCase(actor.getName()) && owner.owner().equals(actor.getUniqueId())) {
-            return CompletableFuture.completedFuture(ActionResult.fail("messages.share-self"));
-        }
-        Settings s = settings.get();
-        boolean charge = costs.isCharged(actor, s.shareCost);
-        if (charge && !costs.canAfford(actor, s.shareCost)) {
-            return CompletableFuture.completedFuture(
-                    ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.shareCost)));
-        }
-        Waypoint source = found.get();
-        CompletableFuture<ActionResult> result = new CompletableFuture<>();
-        sessions.getOrLoadByName(targetName).whenComplete((target, error) ->
-                scheduler.runAtEntity(actor, () -> {
-                    try {
-                        result.complete(finishShare(actor, owner, source, targetName, error == null ? target : Optional.empty(), charge));
-                    } catch (RuntimeException e) {
-                        result.completeExceptionally(e);
-                    }
-                }));
-        return result;
-    }
-
-    private ActionResult finishShare(Player actor, OwnerData owner, Waypoint source, String targetName,
-                                     Optional<OwnerData> found, boolean charge) {
-        Settings s = settings.get();
-        if (!found.isPresent()) {
-            return ActionResult.fail("messages.player-not-found", Text.ph("player", targetName));
-        }
-        OwnerData target = found.get();
-        if (target.owner().equals(owner.owner())) {
-            return ActionResult.fail("messages.share-self");
-        }
-        Player receiver = Bukkit.getPlayer(target.owner());
-        String receiverName = receiver != null ? receiver.getName() : (target.name() != null ? target.name() : targetName);
-        if (receiver == null && !s.shareAllowOffline) {
-            return ActionResult.fail("messages.player-offline", Text.ph("player", receiverName));
-        }
-        if (receiver != null && s.shareCheckTargetLimit) {
-            int limit = limits.limitOf(receiver);
-            if (target.countForLimit(s.deathCountsTowardLimit) >= limit) {
-                return ActionResult.fail("messages.share-target-limit", Text.ph("player", receiverName));
-            }
-        }
-        Waypoint copy = new Waypoint(0L, target.owner(), newCode(target), source.getName(), source.getWorld(),
+    public Waypoint giveCopy(OwnerData receiver, Waypoint source) {
+        Waypoint copy = new Waypoint(0L, receiver.owner(), newCode(receiver), source.getName(), source.getWorld(),
                 source.getX(), source.getY(), source.getZ(), source.getTextColor(), source.getIcon(), source.getIconColor(),
-                source.getBackgroundArgb(), false, 0L, System.currentTimeMillis());
-        if (!call(new WaypointShareEvent(copy.copy(), target.owner()))) {
-            return ActionResult.fail("messages.cancelled");
+                source.getBackgroundArgb(), false, 0L, System.currentTimeMillis(), source.getType(), source.getExpiresAt());
+        if (!call(new WaypointShareEvent(copy.copy(), receiver.owner()))) {
+            return null;
         }
-        if (charge && !costs.charge(actor, s.shareCost)) {
-            return ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.shareCost));
-        }
-        target.put(copy);
+        receiver.put(copy);
         store.insert(copy);
-        applyShow(target, copy.getCode());
-        if (receiver != null) {
-            shareNotifier.received(receiver, copy, actor.getName());
-        }
-        return ActionResult.ok(charge ? "messages.shared-paid" : "messages.shared",
-                Text.merge(ph(source, "player", receiverName), costs.placeholders(s.shareCost)), SoundService.SHARE_SEND, source);
+        applyShow(receiver, copy.getCode());
+        return copy;
     }
 
     // ------------------------------------------------------------------ visibility

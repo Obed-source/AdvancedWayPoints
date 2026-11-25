@@ -101,7 +101,7 @@ public final class OwnerData {
         waypoints.clear();
     }
 
-    /** Favorites first (in the order they were marked), then by creation date. */
+    /** Death points first, then favorites (in the order they were marked), then by creation date. */
     public List<Waypoint> sorted(boolean newestFirst) {
         List<Waypoint> list = new ArrayList<>(waypoints.values());
         Comparator<Waypoint> byDate = Comparator.comparingLong(Waypoint::getCreatedAt);
@@ -110,6 +110,13 @@ public final class OwnerData {
         }
         Comparator<Waypoint> finalByDate = byDate;
         list.sort((a, b) -> {
+            // Death points always come first, newest first; then favorites; then the rest by date.
+            if (a.isDeath() != b.isDeath()) {
+                return a.isDeath() ? -1 : 1;
+            }
+            if (a.isDeath()) {
+                return Long.compare(b.getCreatedAt(), a.getCreatedAt());
+            }
             if (a.isFavorite() != b.isFavorite()) {
                 return a.isFavorite() ? -1 : 1;
             }

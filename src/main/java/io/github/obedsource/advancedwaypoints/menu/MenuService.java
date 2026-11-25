@@ -7,6 +7,8 @@ import io.github.obedsource.advancedwaypoints.config.SoundService;
 import io.github.obedsource.advancedwaypoints.input.InputService;
 import io.github.obedsource.advancedwaypoints.scheduler.PlatformScheduler;
 import io.github.obedsource.advancedwaypoints.service.Feedback;
+import io.github.obedsource.advancedwaypoints.service.ShareService;
+import io.github.obedsource.advancedwaypoints.service.TeleportService;
 import io.github.obedsource.advancedwaypoints.service.WaypointService;
 import io.github.obedsource.advancedwaypoints.session.OwnerData;
 import io.github.obedsource.advancedwaypoints.util.Items;
@@ -47,6 +49,8 @@ public final class MenuService implements Listener {
     private final Supplier<Messages> messages;
     private final Supplier<SoundService> sounds;
     private final WaypointService waypoints;
+    private final ShareService shares;
+    private final TeleportService teleports;
     private final InputService input;
     private final Feedback feedback;
     private final Supplier<String> commandName;
@@ -54,7 +58,8 @@ public final class MenuService implements Listener {
     private final Map<String, ItemStack> buttonCache = new ConcurrentHashMap<>();
 
     public MenuService(Plugin plugin, PlatformScheduler scheduler, Supplier<Settings> settings, Supplier<Messages> messages,
-                       Supplier<SoundService> sounds, WaypointService waypoints, InputService input, Feedback feedback,
+                       Supplier<SoundService> sounds, WaypointService waypoints, ShareService shares,
+                       TeleportService teleports, InputService input, Feedback feedback,
                        Supplier<String> commandName) {
         this.plugin = plugin;
         this.scheduler = scheduler;
@@ -62,6 +67,8 @@ public final class MenuService implements Listener {
         this.messages = messages;
         this.sounds = sounds;
         this.waypoints = waypoints;
+        this.shares = shares;
+        this.teleports = teleports;
         this.input = input;
         this.feedback = feedback;
         this.commandName = commandName;
@@ -105,6 +112,14 @@ public final class MenuService implements Listener {
 
     WaypointService waypoints() {
         return waypoints;
+    }
+
+    ShareService shares() {
+        return shares;
+    }
+
+    TeleportService teleports() {
+        return teleports;
     }
 
     InputService input() {
@@ -189,6 +204,25 @@ public final class MenuService implements Listener {
                 }
             });
         }
+    }
+
+    /**
+     * Prices for lore lines, from the viewer's point of view: {teleport_price}, {share_price} and
+     * {create_price}. Shows the "free" text when the action costs this viewer nothing.
+     */
+    Map<String, String> pricePlaceholders(Player viewer, io.github.obedsource.advancedwaypoints.api.Waypoint waypoint) {
+        io.github.obedsource.advancedwaypoints.service.CostService costs = waypoints.costs();
+        String free = messages.get().raw("placeholders.free");
+        Map<String, String> map = new java.util.LinkedHashMap<>();
+        java.util.function.BiConsumer<String, io.github.obedsource.advancedwaypoints.config.CostSpec> put = (key, cost) ->
+                map.put(key, costs.isCharged(viewer, cost) ? costs.describe(cost) : free);
+        if (waypoint != null) {
+            put.accept("teleport_price", teleports.costOf(waypoint));
+            put.accept("share_price", shares.costOf(waypoint));
+        }
+        put.accept("create_price", settings.get().createCost);
+        map.put("price", map.getOrDefault("teleport_price", free));
+        return map;
     }
 
     String ownerName(OwnerData owner) {

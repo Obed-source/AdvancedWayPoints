@@ -29,7 +29,7 @@ A player stands at the entrance of their mine and types:
 
 From then on, a label like `⛏ north mine (342m)` hangs in the sky in the exact direction of the mine, readable from any distance and visible only to them. They walk, the meters go down. They switch to the Nether, the label waits and comes back the moment they return to the Overworld.
 
-When they die, a red `☠ Death (12m) ⌛9:41` marker appears where they fell and disappears when the timer runs out, so they know exactly how long they have to recover their items.
+When they die, a red `☠ Death (12m) ⌛9:41` marker appears where they fell and disappears when the timer runs out, so they know exactly how long they have to recover their items. Die three times on a bad night and all three spots stay marked, each with its own timer.
 
 ## Why server owners pick it
 
@@ -41,7 +41,7 @@ When they die, a red `☠ Death (12m) ⌛9:41` marker appears where they fell an
 
 **It runs on the server you already have.** One jar works on Spigot, Paper, Purpur and Folia from 1.19.4 up, with Java 17. WorldGuard, Vault and PlaceholderAPI are optional.
 
-**It can earn its keep.** Charge money through Vault, or items from the inventory, for creating, sharing or teleporting. Items can be plain (`5x Diamond`) or your own special items, matched by NBT key, custom model data or name. All prices are off by default.
+**It can earn its keep.** Charge money through Vault, or items from the inventory, for creating, sharing or teleporting, with separate prices for death waypoints. Items can be plain (`5x Diamond`) or your own special items, matched by NBT key, custom model data or name. All prices are off by default, and lore lines can show them with `{teleport_price}` or `{share_price}`.
 
 ## Features
 
@@ -53,7 +53,7 @@ When they die, a red `☠ Death (12m) ⌛9:41` marker appears where they fell an
 
 ### Menus
 - `/wp menu` lists every waypoint as a map item with world, coordinates, distance, creation date and status.
-- Left click shows or hides it, right click edits it, shift + left click teleports (only for players with permission).
+- Left click shows or hides it, right click edits it, shift + left click teleports (only for players with permission). Every lore line is free text with placeholders, so you decide the wording and the casing.
 - The edit menu covers name, text color, icon, icon color, background color, favorite, share, teleport and delete with confirmation.
 - Favorites go to the top in the order they were marked; the rest follow by date.
 - Pagination is always on. Buttons a player can't use show a "no permission" line, or hide completely if you prefer.
@@ -71,10 +71,13 @@ Pick how players type a new name or the player to share with:
 If the chosen mode isn't available on your server, the next one is used.
 
 ### Sharing
-`/wp share <id> <player>` gives the other player their own copy, shown to them right away. No link remains between the two, so the receiver can rename, recolor or delete it freely.
+`/wp share <id> <player>` sends an online player a chat message with clickable **[ACCEPT]** and **[DECLINE]** buttons. If they accept, they get their own copy, shown to them right away, and the sender pays the price (if any). No link remains between the two. Sharing can be switched off for normal waypoints and for death waypoints separately.
 
 ### Death waypoints
-On by default, with its own icon, colors, label format and countdown. Choose the duration (or never expire), how many each player keeps, the worlds where it applies and whether it uses a waypoint slot. Players can recolor and rename it like any other waypoint.
+On by default, with a skull icon, red text and a countdown on the label. Two modes: **ACCUMULATE** keeps up to 3 deaths (configurable), replacing the oldest, each with its own timer; **LATEST** keeps only the last one. Death points sit above everything else in the menu, even favorites, and their look is locked for players. They have their own switches for sharing and teleporting, their own permission (`wp.teleport.death`) and their own prices. You choose the duration, the worlds and whether they use a waypoint slot.
+
+### Teleport
+`wp.teleport` for normal waypoints, `wp.teleport.death` for death points, `wp.admin.tp` for admins: three separate permissions. Use shift + left click in the menu, the edit menu button or `/wp tp <id>`. An optional countdown (off by default) announces every 10 seconds, then every 5, then every second, and can be cancelled by taking damage or by moving away.
 
 ### Rules and limits
 - Waypoint limits from permissions: `wp.limit.5`, `wp.limit.20`... the highest wins.
@@ -112,7 +115,7 @@ The base command is `/waypoints` with the alias `/wp`; you can rename both in `c
 | `/wp rename <id> <name>` | Renames a waypoint |
 | `/wp color <id> <text\|icon\|background> <color>` | Changes a color |
 | `/wp favorite <id>` | Marks or unmarks a favorite |
-| `/wp share <id> <player>` | Gives a copy to another player |
+| `/wp share <id> <player>` | Offers a copy to an online player (they accept or decline in chat) |
 | `/wp tp <id>` | Teleports to a waypoint |
 | `/wp delete <id>` | Deletes a waypoint |
 | `/wp help [page]` | Player help |
@@ -138,6 +141,7 @@ The plugin grants nothing itself; use your permission plugin.
 | `wp.limit.<n>` | — | Waypoint limit; the highest number wins, `default-limit` applies otherwise |
 | `wp.limit.unlimited` | op | No limit |
 | `wp.teleport` | op | Teleport to own waypoints |
+| `wp.teleport.death` | op | Teleport to own death waypoints |
 | `wp.color.text` / `wp.color.icon` / `wp.color.background` | everyone | Open each color picker |
 | `wp.color.<type>.<color>` | op | Use that color, e.g. `wp.color.background.red`. Default colors are always allowed |
 | `wp.color.<type>.custom` | op | Custom colors by command (`#FF8800`, `&c`, `&#FF8800`) |
@@ -161,7 +165,13 @@ Identifier `awp`:
 | `%awp_selected_world%`, `_x`, `_y`, `_z`, `_code` | Selected waypoint data |
 | `%awp_visible_list%`, `%awp_visible_distances%` | Every visible waypoint |
 | `%awp_nearest_name%`, `%awp_nearest_distance%` | Closest waypoint |
-| `%awp_name_<id>%`, `%awp_distance_<id>%`, `%awp_visible_<id>%` | By ID |
+| `%awp_deaths_count%`, `%awp_deaths_max%` | Death waypoints kept and the maximum |
+| `%awp_death_<field>%`, `%awp_death_<n>_<field>%` | Newest death point, or the n-th (1 = newest) |
+| `%awp_nearest_<field>%`, `%awp_selected_<field>%`, `%awp_<field>_<id>%` | Any field of a waypoint |
+| `%awp_cost_<action>%` | Price as this player would pay it, or "free" (`create`, `share`, `teleport`, `death_share`, `death_teleport`) |
+| `%awp_cost_<action>_type%`, `_amount`, `_item` | MONEY / ITEM / NONE, amount, item material |
+
+Fields: `name`, `name_plain`, `code`, `icon`, `label`, `world`, `x`, `y`, `z`, `distance`, `distance_formatted`, `distance_raw`, `time_left`, `created`, `type`, `favorite`, `visible`.
 
 ## Developer API
 

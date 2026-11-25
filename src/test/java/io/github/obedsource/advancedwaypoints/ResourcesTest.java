@@ -62,7 +62,16 @@ class ResourcesTest {
         assertFalse(settings.nameCharacters.matcher("casa'; DROP TABLE").matches());
         assertTrue(settings.updaterEnabled);
         assertEquals("en", settings.language);
-        assertEquals("blue", settings.defaultBackgroundKey);
+        assertEquals("black", settings.defaultBackgroundKey);
+        assertEquals(Settings.DeathMode.ACCUMULATE, settings.deathMode);
+        assertEquals(3, settings.deathMax);
+        assertTrue(settings.shareEnabled);
+        assertFalse(settings.deathShareEnabled);
+        assertTrue(settings.deathTeleportEnabled);
+        assertFalse(settings.countdownEnabled);
+        assertEquals(Settings.CountdownCancel.NONE, settings.countdownCancel);
+        assertFalse(settings.defaultIconWithoutPermission);
+        assertFalse(settings.deathTeleportCost.active());
         assertFalse(settings.createCost.active());
         assertFalse(settings.shareCost.active());
         assertFalse(settings.teleportCost.active());

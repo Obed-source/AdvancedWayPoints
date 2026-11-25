@@ -51,6 +51,8 @@ public final class Settings {
     public final List<String> icons;
     public final String defaultIcon;
     public final boolean randomIcon;
+    /** Players without wp.icon always get default-icon instead of a random one. */
+    public final boolean defaultIconWithoutPermission;
     public final boolean randomIconColor;
     public final boolean randomTextColor;
     public final String defaultTextColorKey;
@@ -101,8 +103,9 @@ public final class Settings {
     public final boolean hideItemsWithoutPermission;
 
     // Sharing
-    public final boolean shareAllowOffline;
+    public final boolean shareEnabled;
     public final boolean shareCheckTargetLimit;
+    public final int shareRequestSeconds;
 
     // Costs (money or items) per action: create, share, teleport
     public final CostSpec createCost;
@@ -114,12 +117,27 @@ public final class Settings {
     public final boolean teleportShortcut;
     public final boolean teleportInEditMenu;
 
+    /** How a teleport countdown is cancelled. */
+    public enum CountdownCancel { NONE, DAMAGE, MOVEMENT }
+
+    public final boolean countdownEnabled;
+    public final int countdownSeconds;
+    public final CountdownCancel countdownCancel;
+
     // Death waypoints
     public final boolean deathEnabled;
     public final RestrictionMode deathWorldMode;
     public final Set<String> deathWorlds;
     public final long deathDurationSeconds;
-    public final int deathKeep;
+    /** ACCUMULATE keeps up to deathMax death points (oldest replaced), LATEST keeps only the last one. */
+    public enum DeathMode { ACCUMULATE, LATEST }
+
+    public final DeathMode deathMode;
+    public final int deathMax;
+    public final boolean deathShareEnabled;
+    public final boolean deathTeleportEnabled;
+    public final CostSpec deathTeleportCost;
+    public final CostSpec deathShareCost;
     public final boolean deathShow;
     public final boolean deathCountsTowardLimit;
     public final String deathIcon;
@@ -174,11 +192,12 @@ public final class Settings {
         }
         icons = Collections.unmodifiableList(iconList);
         randomIcon = c.getBoolean("waypoints.random-icon", true);
+        defaultIconWithoutPermission = c.getBoolean("waypoints.default-icon-without-permission", false);
         randomIconColor = c.getBoolean("waypoints.random-icon-color", true);
         randomTextColor = c.getBoolean("waypoints.random-text-color", false);
         defaultTextColorKey = c.getString("waypoints.default-text-color", "white").toLowerCase(Locale.ROOT);
         defaultIconColorKey = c.getString("waypoints.default-icon-color", "white").toLowerCase(Locale.ROOT);
-        defaultBackgroundKey = c.getString("waypoints.default-background-color", "blue").toLowerCase(Locale.ROOT);
+        defaultBackgroundKey = c.getString("waypoints.default-background-color", "black").toLowerCase(Locale.ROOT);
         backgroundAlpha = clamp(c.getInt("waypoints.background-alpha", 160), 0, 255);
 
         worldMode = RestrictionMode.parse(c.getString("restrictions.worlds.mode"));
@@ -225,8 +244,9 @@ public final class Settings {
 
         hideItemsWithoutPermission = c.getBoolean("menus.hide-items-without-permission", false);
 
-        shareAllowOffline = c.getBoolean("share.allow-offline-players", true);
+        shareEnabled = c.getBoolean("share.enabled", true);
         shareCheckTargetLimit = c.getBoolean("share.respect-target-limit", true);
+        shareRequestSeconds = Math.max(10, c.getInt("share.request-timeout-seconds", 60));
 
         createCost = CostSpec.load(c.getConfigurationSection("costs.create"), logger);
         shareCost = CostSpec.load(c.getConfigurationSection("costs.share"), logger);
@@ -235,12 +255,34 @@ public final class Settings {
         teleportEnabled = c.getBoolean("teleport.enabled", true);
         teleportShortcut = c.getBoolean("teleport.shortcut", true);
         teleportInEditMenu = c.getBoolean("teleport.in-edit-menu", true);
+        countdownEnabled = c.getBoolean("teleport.countdown.enabled", false);
+        countdownSeconds = Math.max(1, c.getInt("teleport.countdown.seconds", 5));
+        CountdownCancel cancel;
+        try {
+            cancel = CountdownCancel.valueOf(c.getString("teleport.countdown.cancel-on", "NONE").trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            logger.warning("Unknown teleport.countdown.cancel-on, using NONE");
+            cancel = CountdownCancel.NONE;
+        }
+        countdownCancel = cancel;
 
         deathEnabled = c.getBoolean("death-waypoint.enabled", true);
         deathWorldMode = RestrictionMode.parse(c.getString("death-waypoint.worlds.mode"));
         deathWorlds = lowerSet(c.getStringList("death-waypoint.worlds.list"));
         deathDurationSeconds = Math.max(0L, c.getLong("death-waypoint.duration-seconds", 600L));
-        deathKeep = Math.max(1, c.getInt("death-waypoint.keep", 1));
+        DeathMode mode;
+        try {
+            mode = DeathMode.valueOf(c.getString("death-waypoint.mode", "ACCUMULATE").trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            logger.warning("Unknown death-waypoint.mode, using ACCUMULATE");
+            mode = DeathMode.ACCUMULATE;
+        }
+        deathMode = mode;
+        deathMax = mode == DeathMode.LATEST ? 1 : Math.max(1, c.getInt("death-waypoint.max", 3));
+        deathShareEnabled = c.getBoolean("death-waypoint.share.enabled", false);
+        deathTeleportEnabled = c.getBoolean("death-waypoint.teleport.enabled", true);
+        deathTeleportCost = CostSpec.load(c.getConfigurationSection("death-waypoint.costs.teleport"), logger);
+        deathShareCost = CostSpec.load(c.getConfigurationSection("death-waypoint.costs.share"), logger);
         deathShow = c.getBoolean("death-waypoint.show-automatically", true);
         deathCountsTowardLimit = c.getBoolean("death-waypoint.counts-toward-limit", false);
         deathIcon = c.getString("death-waypoint.icon", "☠");

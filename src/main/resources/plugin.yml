@@ -73,6 +73,9 @@ permissions:
   wp.teleport:
     description: Teleport to own waypoints (shift + left click, edit menu, /wp tp). Prices in costs.teleport.
     default: op
+  wp.teleport.death:
+    description: Teleport to own death waypoints. Prices in death-waypoint.costs.teleport.
+    default: op
   wp.name.format:
     description: Use & color codes in waypoint names.
     default: op

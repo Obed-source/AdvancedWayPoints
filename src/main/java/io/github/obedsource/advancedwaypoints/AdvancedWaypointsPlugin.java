@@ -23,6 +23,8 @@ import io.github.obedsource.advancedwaypoints.service.LimitService;
 import io.github.obedsource.advancedwaypoints.service.NameValidator;
 import io.github.obedsource.advancedwaypoints.service.RegionProvider;
 import io.github.obedsource.advancedwaypoints.service.RestrictionService;
+import io.github.obedsource.advancedwaypoints.service.ShareService;
+import io.github.obedsource.advancedwaypoints.service.TeleportService;
 import io.github.obedsource.advancedwaypoints.service.WaypointFormat;
 import io.github.obedsource.advancedwaypoints.service.WaypointService;
 import io.github.obedsource.advancedwaypoints.session.DeathWaypoints;
@@ -79,6 +81,8 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
     private CommandServices commandServices;
     private UpdateChecker updater;
     private DeathWaypoints deathWaypoints;
+    private ShareService shares;
+    private TeleportService teleports;
     private String registeredCommandSignature;
 
     @Override
@@ -90,7 +94,10 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
                 .migrateDefault(2, "waypoints.default-background-color", "black")
                 .migrateDefault(2, "display.update-interval-ticks", 2)
                 .migrateDefault(2, "display.smooth-movement-ticks", 2)
-                .removed(2, "economy");
+                .removed(2, "economy")
+                .migrateDefault(3, "waypoints.default-background-color", "blue")
+                .removed(3, "death-waypoint.keep")
+                .removed(3, "share.allow-offline-players");
         menusFile = new ConfigFile(this, "menus.yml");
         soundsFile = new ConfigFile(this, "sounds.yml")
                 .migrateDefault(2, "sounds.show.sound", "minecraft:block.amethyst_block.chime");
@@ -113,22 +120,22 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
         hookVault(pm);
 
         LimitService limits = new LimitService(() -> settings.defaultLimit);
+        CostService costs = new CostService(() -> economy);
         waypoints = new WaypointService(() -> settings, sessions, store, limits,
-                new RestrictionService(() -> settings, regions), new CostService(() -> economy),
+                new RestrictionService(() -> settings, regions), costs,
                 new NameValidator(() -> settings), scheduler, this::colorName, () -> messages.raw("death.name"));
         displays = new DisplayManager(this, scheduler, sessions, () -> settings);
         waypoints.setRefresher(displays);
         Feedback feedback = new Feedback(() -> messages, () -> sounds);
-        waypoints.setShareNotifier((receiver, copy, sender) -> scheduler.runAtEntity(receiver, () -> {
-            messages.send(receiver, "messages.share-received",
-                    Text.merge(WaypointFormat.placeholders(copy, settings), Text.ph("player", sender)));
-            sounds.play(receiver, SoundService.SHARE_RECEIVE);
-        }));
+        shares = new ShareService(() -> settings, () -> messages, sessions, waypoints, costs, limits, scheduler, feedback);
+        teleports = new TeleportService(() -> settings, () -> messages, waypoints, costs, scheduler, feedback);
+        pm.registerEvents(shares, this);
+        pm.registerEvents(teleports, this);
 
         input = new InputService(new InputContext(this, scheduler, () -> settings, () -> messages, () -> sounds));
         input.registerListeners(pm);
-        menus = new MenuService(this, scheduler, () -> settings, () -> messages, () -> sounds, waypoints, input, feedback,
-                () -> settings.commandName);
+        menus = new MenuService(this, scheduler, () -> settings, () -> messages, () -> sounds, waypoints, shares, teleports,
+                input, feedback, () -> settings.commandName);
         menus.load(menusFile.get());
         pm.registerEvents(menus, this);
 
@@ -141,7 +148,7 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
         pm.registerEvents(players, this);
 
         commandServices = new CommandServices(scheduler, () -> settings, () -> messages, () -> sounds, sessions, waypoints,
-                menus, feedback, new ChatPages(() -> settings, () -> messages, limits), this::restart);
+                shares, teleports, menus, feedback, new ChatPages(() -> settings, () -> messages, limits), this::restart);
         commandRegistrar = new CommandRegistrar(getLogger());
         registerCommand();
 
@@ -175,6 +182,9 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
         }
         if (input != null) {
             input.shutdown();
+        }
+        if (teleports != null) {
+            teleports.shutdown();
         }
         Bukkit.getServicesManager().unregisterAll(this);
         if (database != null) {
@@ -226,7 +236,8 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
                 .removed(2, "messages.economy")
                 .removed(2, "messages.deleted-refund")
                 .removed(2, "menu.main.waypoint.lore")
-                .removed(2, "menu.main.waypoint.admin-lore");
+                .removed(2, "menu.main.waypoint.admin-lore")
+                .removed(3, "messages.share-received");
     }
 
     private String colorName(String key) {
@@ -292,7 +303,7 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
             return;
         }
         try {
-            new io.github.obedsource.advancedwaypoints.integration.WaypointPlaceholders(this, sessions, limits,
+            new io.github.obedsource.advancedwaypoints.integration.WaypointPlaceholders(this, sessions, limits, waypoints.costs(),
                     () -> settings, () -> messages).register();
             getLogger().info("Hooked into PlaceholderAPI (%awp_...%).");
         } catch (LinkageError e) {

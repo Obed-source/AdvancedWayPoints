@@ -7,7 +7,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 2
+config-version: 3
 
 messages:
   no-permission: "&cYou don't have permission to do that."
@@ -45,9 +45,8 @@ messages:
   deleted: "&cWaypoint {name} &cdeleted."
   share-self: "&cYou can't share a waypoint with yourself."
   share-target-limit: "&c{player} reached their waypoint limit."
-  shared: "&aYou shared {name} &awith &f{player}&a."
-  shared-paid: "&aYou shared {name} &awith &f{player} &afor &f{price}&a."
-  share-received: "&b{player} &ashared the waypoint {icon_color}{icon} {name} &awith you. It is now visible."
+  shared: "&a{player} accepted {name}&a."
+  shared-paid: "&a{player} accepted {name}&a. You paid &f{price}&a."
   shown: "&aShowing {icon_color}{icon} {name}&a."
   shown-accumulate: "&aAlso showing {icon_color}{icon} {name}&a."
   hidden: "&7You hid {name}&7."
@@ -73,6 +72,21 @@ messages:
   death-created: "&cYou died. &7A {icon_color}{icon} {name} &7waypoint marks the spot for &f{time_left}&7."
   death-created-permanent: "&cYou died. &7A {icon_color}{icon} {name} &7waypoint marks the spot."
   death-expired: "&7Your {icon_color}{icon} {name} &7waypoint disappeared."
+  death-not-editable: "&cDeath waypoints can't be changed."
+  share-disabled: "&cSharing waypoints is disabled."
+  share-death-disabled: "&cDeath waypoints can't be shared."
+  share-request-sent: "&aRequest sent to &f{player}&a. They have &f{seconds}s &ato accept {name}&a."
+  share-target-loading: "&c{player} is still loading, try again in a second."
+  share-request-not-found: "&cThat share request no longer exists."
+  share-sender-offline: "&c{player} is no longer online."
+  share-waypoint-gone: "&cThat waypoint no longer exists."
+  share-failed-cost: "&c{player} accepted {name}&c, but you couldn't pay &f{price}&c."
+  share-sender-cannot-pay: "&c{player} can't pay for the share right now."
+  share-accepted: "&aYou accepted {icon_color}{icon} {name} &afrom &f{player}&a. It is now visible."
+  share-declined: "&7You declined the waypoint from &f{player}&7."
+  share-declined-sender: "&c{player} declined your waypoint."
+  share-expired-sender: "&7{player} did not answer your share request."
+  share-expired-receiver: "&7The share request from {player} expired."
   update-available: "&eA new version of AdvancedWayPoints is available: &f{version}&e. {changelog}"
   update-downloaded: "&aVersion &f{version} &awas downloaded and will be installed on the next restart."
 
@@ -125,7 +139,7 @@ help:
     rename: {usage: "rename <id> <name>", description: "Renames a waypoint."}
     color: {usage: "color <id> <text|icon|background> <color>", description: "Changes a color of a waypoint."}
     favorite: {usage: "favorite <id>", description: "Marks or unmarks a waypoint as favorite."}
-    share: {usage: "share <id> <player>", description: "Gives a copy of the waypoint to another player."}
+    share: {usage: "share <id> <player>", description: "Offers a copy of the waypoint to an online player."}
     delete: {usage: "delete <id>", description: "Deletes a waypoint."}
     teleport: {usage: "tp <id>", description: "Teleports you to one of your waypoints."}
     admin-help: {usage: "admin help [page]", description: "Shows every command (user and admin)."}
@@ -139,6 +153,26 @@ help:
     admin-delete: {usage: "admin delete <player> <id>", description: "Deletes a player's waypoint."}
     admin-clear: {usage: "admin clear <player>", description: "Deletes every waypoint of a player."}
     restart: {usage: "restart", description: "Reloads the configuration (not the database)."}
+
+share-request:
+  received: "&b{player} &awants to share {icon_color}{icon} {name} &awith you &7({seconds}s)."
+  accept: "&a&l[ACCEPT]"
+  separator: " "
+  decline: "&c&l[DECLINE]"
+  accept-hover:
+    - "&7Add {name} &7to your waypoints"
+  decline-hover:
+    - "&7Reject the waypoint"
+
+teleport:
+  # Shown when a countdown starts, by cancel mode (teleport.countdown.cancel-on).
+  countdown-start:
+    none: "&eTeleporting to {name} &ein &f{seconds}s&e."
+    damage: "&eTeleporting to {name} &ein &f{seconds}s&e. Taking damage cancels it."
+    movement: "&eTeleporting to {name} &ein &f{seconds}s&e. Don't move."
+  countdown: "&eTeleporting in &f{seconds}&e..."
+  cancelled-damage: "&cTeleport cancelled: you took damage."
+  cancelled-movement: "&cTeleport cancelled: you moved."
 
 death:
   # Name of death waypoints (players can rename them).
@@ -195,6 +229,10 @@ placeholders:
   answer-yes: "yes"
   answer-no: "no"
   other-world: "other world"
+  free: "free"
+  never: "never"
+  type-normal: "waypoint"
+  type-death: "death"
 
 colors:
   white: "&fWhite"
@@ -224,8 +262,9 @@ menu:
     admin-title: "&4Waypoints of {owner} &7({page}/{pages})"
     waypoint:
       name: "{icon_color}{icon} {name}"
-      # Lines left empty by an empty placeholder (like {favorite} or {teleport}) are removed automatically.
-      # {left_click} says "show" or "hide" depending on the waypoint; {teleport} only appears with permission.
+      # Every line is free text. Available: {name} {name_plain} {icon} {icon_color} {text_color} {world} {x} {y} {z}
+      # {distance} {created} {status} {code} {time_left} {favorite} {death} {left_click} {teleport}
+      # {teleport_price} {share_price} {create_price} ("free" when it costs nothing for this player).
       lines:
         - "{favorite}"
         - "{death}"
@@ -345,8 +384,19 @@ menu:
       share:
         name: "&bShare"
         lore:
-          - "&7Gives a copy to another player."
-          - "&7The copy will be theirs only."
+          - "&7Sends a copy to another player."
+          - "&7They must be online and accept it."
+      share-paid:
+        name: "&bShare"
+        lore:
+          - "&7Sends a copy to another player."
+          - "&7They must be online and accept it."
+          - "&7Price: &f{share_price}"
+      death-locked:
+        name: "&c☠ Death point"
+        lore:
+          - "&7Its name, colors and icon can't be changed."
+          - "&7Disappears in: &f{time_left}"
       teleport:
         name: "&dTeleport"
         lore:

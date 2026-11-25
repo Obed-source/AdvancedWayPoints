@@ -23,6 +23,8 @@ public final class Permissions {
     public static final String DEATH = "wp.death";
     /** Teleport to own waypoints (shift + left click, edit menu, /wp tp). */
     public static final String TELEPORT = "wp.teleport";
+    /** Teleport to own death waypoints (separate from wp.teleport and wp.admin.tp). */
+    public static final String TELEPORT_DEATH = "wp.teleport.death";
     /** Base node for color changes; append "text", "background" or "icon". */
     public static final String COLOR_PREFIX = "wp.color.";
     public static final String LIMIT_PREFIX = "wp.limit.";
