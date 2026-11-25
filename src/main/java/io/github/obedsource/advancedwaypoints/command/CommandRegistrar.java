@@ -7,7 +7,8 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,11 +49,19 @@ public final class CommandRegistrar {
             registered.unregister(map);
             Map<String, Command> known = knownCommands(map);
             if (known != null) {
-                Iterator<Map.Entry<String, Command>> iterator = known.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    if (iterator.next().getValue() == registered) {
-                        iterator.remove();
+                // Paper 26+ returns a view whose iterator does not support remove(), so collect the keys first
+                List<String> keys = new ArrayList<>();
+                try {
+                    for (Map.Entry<String, Command> entry : known.entrySet()) {
+                        if (entry.getValue() == registered) {
+                            keys.add(entry.getKey());
+                        }
                     }
+                    for (String key : keys) {
+                        known.remove(key);
+                    }
+                } catch (RuntimeException e) {
+                    logger.log(Level.FINE, "Could not remove the command from the known commands", e);
                 }
             }
         }
