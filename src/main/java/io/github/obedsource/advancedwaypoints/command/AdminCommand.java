@@ -186,7 +186,7 @@ final class AdminCommand extends SubCommand {
                     return;
                 }
                 withTarget(sender, target, data ->
-                        services.feedback().send(sender, services.waypoints().delete(data, join(args, 2), null)));
+                        services.feedback().send(sender, services.waypoints().delete(data, join(args, 2))));
                 break;
             case "clear":
                 withTarget(sender, target, data -> {

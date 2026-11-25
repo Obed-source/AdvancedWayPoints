@@ -65,6 +65,20 @@ public final class OwnerData {
         return waypoints.size();
     }
 
+    /** Waypoints that count toward the limit (death points only when configured so). */
+    public int countForLimit(boolean includeDeath) {
+        if (includeDeath) {
+            return waypoints.size();
+        }
+        int count = 0;
+        for (Waypoint waypoint : waypoints.values()) {
+            if (!waypoint.isDeath()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public Collection<Waypoint> all() {
         return Collections.unmodifiableCollection(waypoints.values());
     }

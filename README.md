@@ -1,155 +1,192 @@
-# AdvancedWayPoints
+<h1 align="center">AdvancedWayPoints</h1>
 
-Waypoints personales para Minecraft con etiquetas flotantes (TextDisplay) que siempre miran al jugador, menús configurables, compartir, favoritos, colores, iconos y una API para desarrolladores.
+<p align="center"><b>Your players will never ask "where was my base?" in chat again.</b></p>
 
-Personal waypoints for Minecraft with floating labels that always face the player, configurable menus, sharing, favorites, colors, icons and a developer API. *(English summary at the end.)*
+<p align="center">
+Personal waypoints that float in the world, face the player and count down the meters to home.<br>
+Free and open source for Spigot, Paper, Purpur and Folia 1.19.4+.
+</p>
 
-**Autor:** XDiez ([Obed-source](https://github.com/Obed-source)) · **Licencia:** Apache 2.0 (hay que dar crédito, ver [NOTICE](NOTICE))
+<p align="center">
+<a href="https://github.com/Obed-source/AdvancedWayPoints/releases/latest"><b>⬇ Download the latest release</b></a>
+&nbsp;·&nbsp;
+<a href="#commands">Commands</a>
+&nbsp;·&nbsp;
+<a href="#developer-api">Developer API</a>
+&nbsp;·&nbsp;
+<a href="https://paypal.me/obedmontano">☕ Support the project</a>
+</p>
 
 ---
 
-## Compatibilidad
+## What your players get
 
-| | |
+A player stands at the entrance of their mine and types:
+
+```
+/wp create north mine
+```
+
+From then on, a label like `⛏ north mine (342m)` hangs in the sky in the exact direction of the mine, readable from any distance and visible only to them. They walk, the meters go down. They switch to the Nether, the label waits and comes back the moment they return to the Overworld.
+
+When they die, a red `☠ Death (12m) ⌛9:41` marker appears where they fell and disappears when the timer runs out, so they know exactly how long they have to recover their items.
+
+## Why server owners pick it
+
+**It respects your TPS.** Database reads, writes and update checks run on their own threads. Player data loads while the player is still on the login screen, stays in memory while they play and is released when they leave. Menus are built once when the plugin starts; opening one only fills in the player's own waypoints.
+
+**Everything players read is yours to change.** Every message, menu title, lore line, help page and color name lives in `lang/en.yml` or `lang/es.yml`. Menu sizes, item materials, button positions and the first slot of the list live in `menus.yml`. Every sound lives in `sounds.yml`.
+
+**Updates never wipe your setup.** Each file is commented line by line. When a new version adds options, they are written into your files with their comments and your values stay as they were. A `.bak` copy is saved first.
+
+**It runs on the server you already have.** One jar works on Spigot, Paper, Purpur and Folia from 1.19.4 up, with Java 17. WorldGuard, Vault and PlaceholderAPI are optional.
+
+**It can earn its keep.** Charge money through Vault, or items from the inventory, for creating, sharing or teleporting. Items can be plain (`5x Diamond`) or your own special items, matched by NBT key, custom model data or name. All prices are off by default.
+
+## Features
+
+### Floating labels
+- Text Display labels that always face the player, with the distance (`❤ home (30m)`, `1.2km` past a kilometer).
+- Far waypoints are drawn in their real direction and scaled so they stay readable; they hold still when the player jumps.
+- Each label shows to its owner only. Waypoints in another world are kept selected and reappear automatically.
+- Two view modes: **one at a time** (picking a waypoint hides the previous one, picking it again hides it) or **accumulate**.
+
+### Menus
+- `/wp menu` lists every waypoint as a map item with world, coordinates, distance, creation date and status.
+- Left click shows or hides it, right click edits it, shift + left click teleports (only for players with permission).
+- The edit menu covers name, text color, icon, icon color, background color, favorite, share, teleport and delete with confirmation.
+- Favorites go to the top in the order they were marked; the rest follow by date.
+- Pagination is always on. Buttons a player can't use show a "no permission" line, or hide completely if you prefer.
+
+### Typing names without leaving the menu
+Pick how players type a new name or the player to share with:
+
+| Mode | How it works |
 |---|---|
-| Minecraft | 1.19.4 en adelante |
-| Servidores | Spigot, Paper, Purpur, Folia |
-| Java | 17 o superior |
-| Dependencias opcionales | WorldGuard, Vault, PlaceholderAPI |
+| `ANVIL` (default) | Anvil rename field (Paper, Purpur, Folia, or Spigot 1.21+) |
+| `SIGN` | A temporary sign that only that player edits |
+| `COMMAND` | A clickable message that pre-fills the command |
+| `CHAT` | The next chat message becomes the value |
 
-Los datos se guardan en SQLite (el driver ya viene en el servidor, el jar pesa poco). Todo acceso a disco y a internet corre en hilos aparte para no afectar los TPS.
+If the chosen mode isn't available on your server, the next one is used.
 
-## Cómo funciona
+### Sharing
+`/wp share <id> <player>` gives the other player their own copy, shown to them right away. No link remains between the two, so the receiver can rename, recolor or delete it freely.
 
-- `/wp create casa de amigo` guarda tu posición actual con ese nombre (letras con tildes y ñ, números y espacios; 32 caracteres por defecto).
-- Cada waypoint recibe un ID de 4 caracteres (`A-Z a-z 0-9`) único por jugador. El jugador no lo ve: en el chat se hace clic sobre el waypoint (o shift + clic para escribir su ID).
-- Al crearlo, el icono y su color son aleatorios. El fondo es negro con transparencia.
-- Los waypoints solo los ve su dueño. Si está en otro mundo no se dibuja, pero sigue seleccionado y aparece al entrar a ese mundo.
-- **Modo de vista:** *uno a la vez* (elegir otro oculta el anterior; elegir el mismo lo apaga) o *acumular* (se suman).
-- Compartir crea una **copia** para el otro jugador, que se le muestra al instante. No queda registro de con quién lo compartiste.
-- Favoritos salen primero en la lista y en el menú; el resto va por fecha.
-- La etiqueta muestra la distancia, por ejemplo `❤ casa (30m)`. Los waypoints lejanos se dibujan a una distancia fija en su dirección y se agrandan para que se lean.
+### Death waypoints
+On by default, with its own icon, colors, label format and countdown. Choose the duration (or never expire), how many each player keeps, the worlds where it applies and whether it uses a waypoint slot. Players can recolor and rename it like any other waypoint.
 
-## Comandos
+### Rules and limits
+- Waypoint limits from permissions: `wp.limit.5`, `wp.limit.20`... the highest wins.
+- Whitelist or blacklist worlds and WorldGuard regions; players get a message when a spot is not allowed.
+- Names up to 32 characters (configurable) with accents and `ñ`; `&` color codes with `wp.name.format`.
+- Per-color permissions for text, icon and background, plus custom hex colors with `.custom`.
 
-El comando base es `/waypoints` con alias `/wp` (ambos se cambian en `config.yml`). `<id>` también acepta el nombre exacto.
+### Admin control
+`/wp admin` reaches every player's waypoints, online or offline: list, open their menu, edit, recolor, rename, create, teleport, delete or clear. `/wp admin help` shows every command with colors and pages. `/wp restart` reloads the configuration without touching the database.
 
-| Comando | Descripción |
+### Auto updates
+On by default. The plugin reads [`update.json`](update.json) from this repository, downloads new versions into your server's `update` folder after checking their SHA-256, and they install on the next restart.
+
+## Install
+
+1. Download `AdvancedWayPoints-<version>.jar` from [Releases](https://github.com/Obed-source/AdvancedWayPoints/releases/latest).
+2. Drop it into `plugins/` and restart.
+3. Type `/wp create home` in game.
+
+English is the default language. Set `language: es` in `config.yml` for Spanish, or add your own `lang/<code>.yml`.
+
+## Commands
+
+The base command is `/waypoints` with the alias `/wp`; you can rename both in `config.yml`. `<id>` also accepts the exact waypoint name.
+
+| Command | What it does |
 |---|---|
-| `/wp` | Abre el menú (o la ayuda, según config) |
-| `/wp help [página]` | Ayuda paginada |
-| `/wp menu` | Menú interactivo |
-| `/wp create <nombre>` | Crea un waypoint donde estás |
-| `/wp list [página]` | Lista clicable (clic = mostrar/ocultar) |
-| `/wp view <id>` | Muestra u oculta un waypoint |
-| `/wp hide <id>` / `/wp hide all` | Oculta de la vista (sigue en la lista) |
-| `/wp mode` | Cambia entre uno a la vez y acumular |
-| `/wp rename <id> <nombre>` | Renombra |
-| `/wp color <id> <text\|icon\|background> <color>` | Cambia un color |
-| `/wp favorite <id>` | Marca/desmarca favorito |
-| `/wp share <id> <jugador>` | Regala una copia |
-| `/wp delete <id>` | Elimina |
-| `/wp restart` | Recarga la configuración (no la base de datos) |
-| `/wp admin help [página]` | Todos los comandos, con colores y paginación |
-| `/wp admin list <jugador> [página]` | Waypoints de cualquier jugador (online u offline) |
-| `/wp admin menu <jugador>` | Edita los waypoints de un jugador desde el menú |
-| `/wp admin info <jugador>` | Cantidad, límite, modo |
-| `/wp admin tp <jugador> <id>` | Teletransporte al waypoint |
-| `/wp admin create <jugador> <nombre>` | Crea un waypoint para otro jugador |
-| `/wp admin rename <jugador> <id> <nombre>` | Renombra |
-| `/wp admin color <jugador> <id> <tipo> <color>` | Cambia colores |
-| `/wp admin delete <jugador> <id>` | Elimina |
-| `/wp admin clear <jugador>` | Elimina todos |
+| `/wp` | Opens the menu (or the help, configurable) |
+| `/wp menu` | Waypoint menu |
+| `/wp create <name>` | Creates a waypoint where you stand |
+| `/wp list [page]` | Clickable list: click to show or hide, shift + click to insert the ID |
+| `/wp view <id>` | Shows or hides a waypoint |
+| `/wp hide <id>` / `/wp hide all` | Removes waypoints from view (they stay in the list) |
+| `/wp mode` | Switches between one at a time and accumulate |
+| `/wp rename <id> <name>` | Renames a waypoint |
+| `/wp color <id> <text\|icon\|background> <color>` | Changes a color |
+| `/wp favorite <id>` | Marks or unmarks a favorite |
+| `/wp share <id> <player>` | Gives a copy to another player |
+| `/wp tp <id>` | Teleports to a waypoint |
+| `/wp delete <id>` | Deletes a waypoint |
+| `/wp help [page]` | Player help |
+| `/wp admin help [page]` | Every command, player and admin |
+| `/wp admin list <player> [page]` | Lists a player's waypoints |
+| `/wp admin menu <player>` | Opens a player's waypoints in the menu |
+| `/wp admin info <player>` | Count, limit and view mode |
+| `/wp admin tp <player> <id>` | Teleports to a player's waypoint |
+| `/wp admin create <player> <name>` | Creates a waypoint for a player |
+| `/wp admin rename <player> <id> <name>` | Renames a player's waypoint |
+| `/wp admin color <player> <id> <type> <color>` | Recolors a player's waypoint |
+| `/wp admin delete <player> <id>` | Deletes a player's waypoint |
+| `/wp admin clear <player>` | Deletes all of a player's waypoints |
+| `/wp restart` | Reloads the configuration |
 
-El icono solo se elige desde el menú.
+## Permissions
 
-## Permisos
+The plugin grants nothing itself; use your permission plugin.
 
-El plugin no gestiona permisos: usa el plugin de permisos que prefieras.
-
-| Permiso | Por defecto | Uso |
+| Permission | Default | Purpose |
 |---|---|---|
-| `wp.help`, `wp.menu`, `wp.create`, `wp.list`, `wp.view`, `wp.hide`, `wp.mode`, `wp.rename`, `wp.delete`, `wp.share`, `wp.favorite`, `wp.icon` | todos | Funciones del jugador (niega `wp.help` para quitar la ayuda) |
-| `wp.limit.<n>` | — | Máximo de waypoints; gana el número más alto. Sin permiso se usa `default-limit` |
-| `wp.limit.unlimited` | op | Sin límite |
-| `wp.color.text` / `wp.color.icon` / `wp.color.background` | todos | Abrir cada selector de color |
-| `wp.color.<tipo>.<color>` | op | Usar ese color (p. ej. `wp.color.background.red`). Los colores por defecto siempre están permitidos |
-| `wp.color.<tipo>.custom` | op | Colores hex propios por comando (`#FF8800`, `&c`, `&#FF8800`) |
-| `wp.name.format` | op | Usar códigos `&` en los nombres |
-| `wp.bypass.restrictions` | op | Ignorar listas de mundos/regiones |
-| `wp.bypass.cost` | op | Crear y compartir gratis |
-| `wp.admin` | op | Todas las acciones admin (`wp.admin.list`, `.menu`, `.info`, `.tp`, `.create`, `.rename`, `.color`, `.delete`, `.clear`, `.restart`, `.update`, `.help`) |
-
-En los menús, los botones sin permiso se muestran con un aviso en el lore (o se ocultan con `menus.hide-items-without-permission: true`).
-
-## Configuración
-
-| Archivo | Contenido |
-|---|---|
-| `config.yml` | Comando y alias, prefijo, límites, nombres, iconos, colores, listas blancas/negras de mundos y regiones WorldGuard, estilo de las etiquetas, entrada de texto, precios Vault, auto-update |
-| `menus.yml` | Tamaño, materiales, posición de cada botón y desde qué casilla empieza la lista de cada menú |
-| `sounds.yml` | Sonido, volumen y tono por acción (la misma acción suena igual por comando o por menú) |
-| `lang/es.yml`, `lang/en.yml` | Todos los textos: mensajes, ayuda, lista, menús y nombres de colores |
-
-Todos los archivos tienen comentarios y **se actualizan solos**: al subir de versión se agregan las opciones nuevas y se conservan tus valores (antes se guarda una copia `.bak`).
-
-**Entrada de texto** (renombrar, compartir, crear desde el menú), en `input.type`:
-`ANVIL` (yunque, por defecto) → `SIGN` (cartel temporal) → `COMMAND` (mensaje clicable que escribe el comando) → `CHAT` (el siguiente mensaje). Si el elegido no está disponible en el servidor se usa el siguiente. El yunque necesita Paper/Purpur/Folia o Spigot 1.21+.
-
-**Vault:** precio por crear, por compartir y reembolso al eliminar; los tres desactivados por defecto.
-
-**Auto-update:** activado por defecto. Lee [`update.json`](update.json) de este repositorio y descarga la versión nueva en la carpeta `update` del servidor; se instala al reiniciar.
+| `wp.help`, `wp.menu`, `wp.create`, `wp.list`, `wp.view`, `wp.hide`, `wp.mode`, `wp.rename`, `wp.delete`, `wp.share`, `wp.favorite`, `wp.icon`, `wp.death` | everyone | Player features (negate `wp.help` to hide the help) |
+| `wp.limit.<n>` | — | Waypoint limit; the highest number wins, `default-limit` applies otherwise |
+| `wp.limit.unlimited` | op | No limit |
+| `wp.teleport` | op | Teleport to own waypoints |
+| `wp.color.text` / `wp.color.icon` / `wp.color.background` | everyone | Open each color picker |
+| `wp.color.<type>.<color>` | op | Use that color, e.g. `wp.color.background.red`. Default colors are always allowed |
+| `wp.color.<type>.custom` | op | Custom colors by command (`#FF8800`, `&c`, `&#FF8800`) |
+| `wp.name.format` | op | `&` color codes in names |
+| `wp.bypass.restrictions` | op | Ignore world and region rules |
+| `wp.bypass.cost` | op | Never pay |
+| `wp.admin` | op | Every admin action (`wp.admin.list`, `.menu`, `.info`, `.tp`, `.create`, `.rename`, `.color`, `.delete`, `.clear`, `.restart`, `.update`, `.help`) |
 
 ## PlaceholderAPI
 
-Identificador `awp`:
+Identifier `awp`:
 
-| Placeholder | Valor |
+| Placeholder | Value |
 |---|---|
-| `%awp_count%` / `%awp_limit%` / `%awp_remaining%` | Cantidad, límite, restantes |
-| `%awp_visible_count%` / `%awp_favorites%` / `%awp_mode%` | Visibles, favoritos, modo de vista |
-| `%awp_selected_name%` / `%awp_selected_icon%` / `%awp_selected_label%` | Último seleccionado |
-| `%awp_selected_distance%` | Distancia en bruto, p. ej. `30m` |
-| `%awp_selected_distance_formatted%` | Con el estilo de config, p. ej. ` (30m)` |
-| `%awp_selected_distance_raw%` | Solo el número |
-| `%awp_selected_world%` / `_x` / `_y` / `_z` / `_code` | Datos del seleccionado |
-| `%awp_visible_list%` / `%awp_visible_distances%` | Todos los visibles |
-| `%awp_nearest_name%` / `%awp_nearest_distance%` | El más cercano |
-| `%awp_name_<id>%` / `%awp_distance_<id>%` / `%awp_visible_<id>%` | Por ID |
+| `%awp_count%`, `%awp_limit%`, `%awp_remaining%` | Waypoints owned, limit, slots left |
+| `%awp_visible_count%`, `%awp_favorites%`, `%awp_mode%` | Visible, favorites, view mode |
+| `%awp_selected_name%`, `%awp_selected_icon%`, `%awp_selected_label%` | Last selected waypoint |
+| `%awp_selected_distance%` | Raw distance, e.g. `30m` |
+| `%awp_selected_distance_formatted%` | Styled from config, e.g. ` (30m)` |
+| `%awp_selected_distance_raw%` | Number only |
+| `%awp_selected_world%`, `_x`, `_y`, `_z`, `_code` | Selected waypoint data |
+| `%awp_visible_list%`, `%awp_visible_distances%` | Every visible waypoint |
+| `%awp_nearest_name%`, `%awp_nearest_distance%` | Closest waypoint |
+| `%awp_name_<id>%`, `%awp_distance_<id>%`, `%awp_visible_<id>%` | By ID |
 
-## API para desarrolladores
+## Developer API
 
 ```java
 AdvancedWaypointsAPI api = AdvancedWaypointsAPI.get();
-api.getWaypoints(player.getUniqueId()).thenAccept(list -> { /* hilo en segundo plano */ });
+api.getWaypoints(player.getUniqueId()).thenAccept(list -> { /* runs off the main thread */ });
 api.createWaypoint(player.getUniqueId(), "Base", player.getLocation());
 api.showWaypoint(player, "aB3x");
 int limit = api.getLimit(player);
 ```
 
-Eventos: `WaypointCreateEvent`, `WaypointDeleteEvent`, `WaypointShareEvent` (cancelables), `WaypointUpdateEvent`, `WaypointVisibilityEvent`.
-Declara `softdepend: [AdvancedWayPoints]` en tu `plugin.yml`.
+Events: `WaypointCreateEvent`, `WaypointDeleteEvent`, `WaypointShareEvent` (cancellable), `WaypointUpdateEvent`, `WaypointVisibilityEvent`. Add `softdepend: [AdvancedWayPoints]` to your `plugin.yml`.
 
-## Compilar
+## Building from source
 
 ```
 ./gradlew build
 ```
 
-El jar queda en `build/libs/AdvancedWayPoints-<versión>.jar`. Las pruebas (`./gradlew test`) cubren los YAML, la base de datos SQLite y las utilidades.
+The jar is written to `build/libs/`. `./gradlew test` checks the YAML files, the SQLite storage and the helpers.
 
-## Publicar una versión
+## Support the project
 
-1. Sube `version` en `build.gradle` y compila.
-2. Crea un release `v<versión>` en GitHub con el jar.
-3. Actualiza `update.json` (versión, enlace de descarga y `sha256` del jar). Los servidores la descargan solos.
+AdvancedWayPoints is free and will stay free. If it saves your players a few lost bases, you can buy me a coffee at **[paypal.me/obedmontano](https://paypal.me/obedmontano)**. Bug reports and ideas are welcome in [Issues](https://github.com/Obed-source/AdvancedWayPoints/issues), and a ⭐ helps other server owners find it.
 
----
+## License
 
-## English summary
-
-AdvancedWayPoints gives every player personal waypoints, drawn as floating text that faces them, with the distance (`❤ home (30m)`). Create one with `/wp create <name>` at your position; list them with `/wp list` (click to show) or manage them in `/wp menu` (left click show, right click edit: rename, text/icon/background color, icon, favorite, share, delete). View mode is *one at a time* or *accumulate*. Sharing gives the other player a copy. Admins (`/wp admin ...`) see and edit everyone's waypoints. Works on Spigot, Paper, Purpur and Folia 1.19.4+, stores data in SQLite, supports WorldGuard (world/region rules), Vault (optional prices), PlaceholderAPI (`%awp_...%`) and ships a developer API. Every file is commented, auto-updating, and translated into Spanish and English (`language: en`).
-
-## Licencia
-
-Apache License 2.0. Puedes usar, modificar y redistribuir el plugin, también gratis o en servidores públicos, siempre que mantengas el aviso de copyright y el archivo [NOTICE](NOTICE) que da crédito a **XDiez (Obed-source)**.
+[Apache License 2.0](LICENSE) © Obed-Source. You can use, modify and share it, including on public servers, as long as you keep the copyright notice and the [NOTICE](NOTICE) file.

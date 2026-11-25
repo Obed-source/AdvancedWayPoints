@@ -77,17 +77,20 @@ final class EditMenu extends Menu {
             service.sound(viewer, SoundService.MENU_CLICK);
             service.openConfirm(viewer, owner, admin, code, returnPage);
         });
+        // Teleport: admins always (free); players when enabled in config and allowed (it may cost).
+        java.util.function.Consumer<org.bukkit.event.inventory.ClickType> teleport = click -> {
+            ActionResult result = service.waypoints().teleport(viewer, owner, code, admin);
+            if (result.success()) {
+                service.scheduler().runAtEntityLater(viewer, viewer::closeInventory, 1L);
+            }
+            service.feedback().send(viewer, result);
+        };
+        Map<String, String> teleportPh = Text.merge(ph, service.waypoints().costs().placeholders(settings.teleportCost));
+        boolean paid = !admin && service.waypoints().costs().isCharged(viewer, settings.teleportCost);
         if (admin) {
-            button("teleport", ph, click -> {
-                org.bukkit.Location location = waypoint.toLocation();
-                if (location == null) {
-                    service.feedback().error(viewer, "messages.world-not-loaded", ph);
-                    return;
-                }
-                viewer.closeInventory();
-                service.scheduler().teleport(viewer, location);
-                service.sound(viewer, SoundService.TELEPORT);
-            });
+            guardedButton("teleport", Permissions.ADMIN_TP, teleportPh, teleport);
+        } else if (settings.teleportEnabled && settings.teleportInEditMenu) {
+            guardedButton(paid ? "teleport-paid" : "teleport", Permissions.TELEPORT, teleportPh, teleport);
         }
         button("back", ph, click -> {
             service.sound(viewer, SoundService.MENU_BACK);
@@ -113,7 +116,7 @@ final class EditMenu extends Menu {
     }
 
     private void askRename(Waypoint waypoint) {
-        service.input().request(viewer, new InputRequest("rename", Text.strip(waypoint.getName()), commandPrefix(),
+        service.input().request(viewer, new InputRequest("rename", waypoint.getName(), commandPrefix(),
                 text -> {
                     ActionResult result = service.waypoints().rename(viewer, owner, code, text, admin);
                     service.feedback().send(viewer, result);

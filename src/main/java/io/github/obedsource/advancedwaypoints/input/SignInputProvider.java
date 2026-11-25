@@ -74,7 +74,7 @@ public final class SignInputProvider implements InputProvider, Listener {
             return false;
         }
         Sign sign = (Sign) block.getState();
-        String initial = request.initial() == null ? "" : Text.strip(request.initial());
+        String initial = request.initial() == null ? "" : Text.stripSectionCodes(request.initial());
         sign.setLine(0, initial.length() > 15 ? initial.substring(0, 15) : initial);
         sign.setLine(1, initial.length() > 15 ? initial.substring(15, Math.min(30, initial.length())) : "");
         List<String> prompt = ctx.messages().get().getList("input.sign-lines." + request.purpose(), null);
@@ -136,7 +136,7 @@ public final class SignInputProvider implements InputProvider, Listener {
         event.setCancelled(true);
         String first = event.getLine(0) == null ? "" : event.getLine(0);
         String second = event.getLine(1) == null ? "" : event.getLine(1);
-        String value = Text.strip((first + " " + second).trim()).trim();
+        String value = Text.stripSectionCodes((first + " " + second).trim()).trim();
         Player player = event.getPlayer();
         session.done = true;
         sessions.remove(player.getUniqueId(), session);

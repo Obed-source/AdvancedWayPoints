@@ -19,6 +19,9 @@ public interface PlatformScheduler {
 
     void runGlobalLater(Runnable task, long delayTicks);
 
+    /** Repeating task on the main thread (global region thread on Folia). */
+    TaskHandle runGlobalTimer(Runnable task, long delayTicks, long periodTicks);
+
     /** Runs on the thread that owns the entity (main thread outside Folia). */
     void runAtEntity(Entity entity, Runnable task);
 

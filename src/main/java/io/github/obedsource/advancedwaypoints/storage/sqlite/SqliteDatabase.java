@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public final class SqliteDatabase {
 
-    private static final int SCHEMA_VERSION = 1;
+    private static final int SCHEMA_VERSION = 2;
 
     private final File file;
     private final Logger logger;
@@ -111,6 +111,11 @@ public final class SqliteDatabase {
                         + "code TEXT NOT NULL,"
                         + "position INTEGER NOT NULL,"
                         + "PRIMARY KEY(owner, code))");
+            }
+            if (version < 2) {
+                // Waypoint kind (0 normal, 1 death) and expiry time.
+                statement.execute("ALTER TABLE awp_waypoints ADD COLUMN kind INTEGER NOT NULL DEFAULT 0");
+                statement.execute("ALTER TABLE awp_waypoints ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0");
             }
             statement.execute("PRAGMA user_version = " + SCHEMA_VERSION);
             connection.commit();

@@ -56,7 +56,7 @@ public final class WaypointPlaceholders extends PlaceholderExpansion {
 
     @Override
     public String getAuthor() {
-        return "XDiez";
+        return "Obed-Source";
     }
 
     @Override

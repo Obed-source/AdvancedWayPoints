@@ -1,6 +1,6 @@
 # ============================================================
 #  AdvancedWayPoints - config.yml
-#  Author: XDiez (Obed-source) - https://github.com/Obed-source/AdvancedWayPoints
+#  Author: Obed-Source - https://github.com/Obed-source/AdvancedWayPoints
 #
 #  Use /wp restart to apply changes (configuration only, the database is not reloaded).
 #  This file updates itself when the plugin is updated: new options are added with
@@ -8,10 +8,11 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 1
+config-version: 2
 
-# Language file inside /lang (es, en, or any file you create there, e.g. fr -> lang/fr.yml).
-language: es
+# Language file inside /lang (en, es, or any file you create there, e.g. fr -> lang/fr.yml).
+# If the file does not exist, English is used.
+language: en
 
 # Prefix added before every chat message of the plugin. Supports & codes and &#RRGGBB.
 message-prefix: "&8[&b&lWaypoints&8] &r"
@@ -47,6 +48,7 @@ waypoints:
   newest-first: false
   # Icons players can pick in the edit menu (keyboard symbols / unicode).
   # Emoji outside the Minecraft font (most color emoji) show as a box, prefer these symbols.
+  # More dot and symbol ideas: https://emojidb.org/dot-emojis
   icons:
     - "•"
     - "●"
@@ -89,7 +91,7 @@ waypoints:
   # Default colors (keys from colors:). These are always allowed, without permission.
   default-text-color: white
   default-icon-color: white
-  default-background-color: black
+  default-background-color: blue
   # Background opacity, 0 (transparent) to 255 (solid).
   background-alpha: 160
 
@@ -135,7 +137,7 @@ display:
   # Height of the label above the saved position.
   height-offset: 1.5
   # How often labels follow the player, in ticks (1 = smoothest, 2-4 recommended).
-  update-interval-ticks: 2
+  update-interval-ticks: 1
   # Visible through blocks.
   see-through: true
   text-shadow: true
@@ -145,7 +147,7 @@ display:
   # Text opacity 0-255.
   text-opacity: 255
   # Smooth movement between updates in ticks (Minecraft 1.20.2+ only).
-  smooth-movement-ticks: 2
+  smooth-movement-ticks: 1
 
 list:
   # Waypoints per page in /wp list.
@@ -183,18 +185,69 @@ share:
   # Refuse the share when the receiver reached their waypoint limit (online receivers only).
   respect-target-limit: true
 
-# Vault prices (needs Vault and an economy plugin). wp.bypass.cost skips them.
-economy:
+teleport:
+  # Teleporting to own waypoints (permission wp.teleport). Admins always can with wp.admin.tp.
+  enabled: true
+  # Shift + left click on a waypoint in the menu teleports there (shown in the lore only to players
+  # who have the permission).
+  shortcut: true
+  # Show the teleport button in the edit menu. false = only admins see it.
+  in-edit-menu: true
+
+# Death waypoint: when a player dies, a waypoint is created where they died.
+death-waypoint:
+  enabled: true
+  # Players need wp.death (everyone has it by default).
+  worlds:
+    # disabled, whitelist or blacklist, like restrictions.worlds.
+    mode: blacklist
+    list: []
+  # Seconds until it disappears (shown on the label). 0 = it never disappears.
+  duration-seconds: 600
+  # How many death waypoints a player keeps; older ones are removed on a new death.
+  keep: 1
+  # Show it right away (follows the player's view mode).
+  show-automatically: true
+  # Whether death waypoints use one of the player's waypoint slots.
+  counts-toward-limit: false
+  # Icon and colors (keys from colors:). Players can change them like any waypoint.
+  icon: "☠"
+  icon-color: red
+  text-color: red
+  background-color: black
+  # Label text. Same placeholders as display.format plus {time_left}. The name comes from the lang file (death.name).
+  format: "{icon_color}{icon} {text_color}{name}{distance} &7⌛{time_left}"
+  time-left:
+    format: "{minutes}:{seconds}"
+    hours-format: "{hours}:{minutes}:{seconds}"
+
+# Prices. Each action can cost money (Vault) or items. wp.bypass.cost skips every price.
+# Paid prices are never given back, not even when the waypoint is deleted.
+#   type: MONEY or ITEM
+#   money: amount of money (MONEY, needs Vault and an economy plugin; free without them)
+#   item: (ITEM) taken from the player's inventory
+#     material: item type
+#     amount: how many
+#     nbt-key: optional persistent data key for special items, e.g. "myplugin:token"
+#     nbt-value: optional text value the key must have (empty = any value)
+#     custom-model-data: optional, 0 = any
+#     name: optional display name the item must have (color codes allowed)
+costs:
   create:
     enabled: false
-    price: 100.0
+    type: MONEY
+    money: 100.0
+    item: {material: DIAMOND, amount: 1, nbt-key: "", nbt-value: "", custom-model-data: 0, name: ""}
   share:
     enabled: false
-    price: 50.0
-  # Money given back when a waypoint is deleted.
-  delete-refund:
+    type: MONEY
+    money: 50.0
+    item: {material: DIAMOND, amount: 1, nbt-key: "", nbt-value: "", custom-model-data: 0, name: ""}
+  teleport:
     enabled: false
-    amount: 50.0
+    type: MONEY
+    money: 25.0
+    item: {material: ENDER_PEARL, amount: 1, nbt-key: "", nbt-value: "", custom-model-data: 0, name: ""}
 
 updater:
   # Check GitHub for new versions on startup.

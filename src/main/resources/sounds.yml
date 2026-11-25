@@ -9,7 +9,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 1
+config-version: 2
 
 # Master switch for every sound of the plugin.
 enabled: true
@@ -34,7 +34,7 @@ sounds:
   share-send: {sound: "minecraft:entity.villager.yes", volume: 0.8, pitch: 1.2, enabled: true}
   share-receive: {sound: "minecraft:block.note_block.chime", volume: 1.0, pitch: 1.4, enabled: true}
   # Waypoint shown / hidden (go, toggle).
-  show: {sound: "minecraft:block.amethyst_block.chime", volume: 1.0, pitch: 1.2, enabled: true}
+  show: {sound: "minecraft:block.note_block.bell", volume: 1.0, pitch: 1.5, enabled: true}
   hide: {sound: "minecraft:block.amethyst_block.hit", volume: 1.0, pitch: 0.8, enabled: true}
   # Every waypoint hidden.
   hide-all: {sound: "minecraft:block.beacon.deactivate", volume: 0.6, pitch: 1.4, enabled: true}

@@ -32,6 +32,7 @@ public final class WaypointFormat {
         map.put("z", String.valueOf(waypoint.getBlockZ()));
         map.put("created", settings.dateFormat.format(Instant.ofEpochMilli(waypoint.getCreatedAt())));
         map.put("background", hex(waypoint.getBackgroundArgb()));
+        map.put("time_left", timeLeft(waypoint, settings));
         return map;
     }
 
@@ -48,7 +49,22 @@ public final class WaypointFormat {
         map.put("name", waypoint.getName());
         map.put("distance", distance);
         map.put("distance_raw", distanceRaw == null ? "" : distanceRaw);
-        return Text.color(Text.replace(settings.displayFormat, map));
+        map.put("time_left", timeLeft(waypoint, settings));
+        return Text.color(Text.replace(waypoint.isDeath() ? settings.deathFormat : settings.displayFormat, map));
+    }
+
+    /** Time until the waypoint disappears, e.g. "9:41", or "" when it never expires. */
+    public static String timeLeft(Waypoint waypoint, Settings settings) {
+        if (waypoint.getExpiresAt() <= 0) {
+            return "";
+        }
+        long seconds = Math.max(0L, (waypoint.getExpiresAt() - System.currentTimeMillis() + 999L) / 1000L);
+        long hours = seconds / 3600L;
+        String template = hours > 0 ? settings.timeLeftHoursFormat : settings.timeLeftFormat;
+        long minutes = hours > 0 ? (seconds % 3600L) / 60L : seconds / 60L;
+        return template.replace("{hours}", String.valueOf(hours))
+                .replace("{minutes}", hours > 0 ? String.format(Locale.ROOT, "%02d", minutes) : String.valueOf(minutes))
+                .replace("{seconds}", String.format(Locale.ROOT, "%02d", seconds % 60L));
     }
 
     /** Raw distance text, e.g. "30m" or "1.2km". */

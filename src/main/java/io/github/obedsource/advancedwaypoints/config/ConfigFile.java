@@ -35,6 +35,28 @@ public final class ConfigFile {
         this.file = new File(plugin.getDataFolder(), resourcePath);
     }
 
+    /**
+     * A change of default between file versions: when the owner's file is older than {@code version} and
+     * still has the old default at {@code path}, the new default replaces it. With a null old value the
+     * path is removed (an option that no longer exists).
+     */
+    private record Migration(int version, String path, Object oldDefault) {
+    }
+
+    private final java.util.List<Migration> migrations = new java.util.ArrayList<>();
+
+    /** Replaces an untouched old default with the new bundled one when updating from an older file. */
+    public ConfigFile migrateDefault(int version, String path, Object oldDefault) {
+        migrations.add(new Migration(version, path, oldDefault));
+        return this;
+    }
+
+    /** Drops an option that no longer exists when updating from an older file. */
+    public ConfigFile removed(int version, String path) {
+        migrations.add(new Migration(version, path, null));
+        return this;
+    }
+
     public YamlConfiguration get() {
         return config;
     }
@@ -127,14 +149,32 @@ public final class ConfigFile {
     }
 
     /** The template (with comments) filled with the owner's values. */
-    private static YamlConfiguration merge(YamlConfiguration defaults, YamlConfiguration current) {
+    private YamlConfiguration merge(YamlConfiguration defaults, YamlConfiguration current) {
+        int fileVersion = current.getInt(VERSION_KEY, 0);
         for (String key : current.getKeys(true)) {
-            if (VERSION_KEY.equals(key) || current.isConfigurationSection(key)) {
+            if (VERSION_KEY.equals(key) || current.isConfigurationSection(key) || skippedByMigration(key, current, fileVersion)) {
                 continue;
             }
             defaults.set(key, current.get(key));
         }
         return defaults;
+    }
+
+    private boolean skippedByMigration(String key, YamlConfiguration current, int fileVersion) {
+        for (Migration migration : migrations) {
+            if (fileVersion >= migration.version()) {
+                continue;
+            }
+            if (migration.oldDefault() == null) {
+                if (key.equals(migration.path()) || key.startsWith(migration.path() + ".")) {
+                    return true;
+                }
+            } else if (key.equals(migration.path())
+                    && String.valueOf(migration.oldDefault()).equals(String.valueOf(current.get(key)))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void backup(String suffix) {

@@ -65,7 +65,7 @@ public final class ChatInputProvider implements InputProvider, Listener {
             return;
         }
         event.setCancelled(true);
-        String message = Text.strip(event.getMessage()).trim();
+        String message = Text.stripSectionCodes(event.getMessage()).trim();
         boolean cancelled = message.isEmpty() || message.equalsIgnoreCase(ctx.settings().get().inputCancelWord);
         ctx.scheduler().runAtEntity(player, () -> {
             if (cancelled) {

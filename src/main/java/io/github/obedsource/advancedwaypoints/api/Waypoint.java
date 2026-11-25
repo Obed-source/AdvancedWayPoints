@@ -30,10 +30,19 @@ public final class Waypoint {
     private boolean favorite;
     private long favoriteAt;
     private final long createdAt;
+    private final WaypointType type;
+    private final long expiresAt;
 
     public Waypoint(long id, UUID owner, String code, String name, String world, double x, double y, double z,
                     String textColor, String icon, String iconColor, int backgroundArgb,
                     boolean favorite, long favoriteAt, long createdAt) {
+        this(id, owner, code, name, world, x, y, z, textColor, icon, iconColor, backgroundArgb, favorite, favoriteAt,
+                createdAt, WaypointType.NORMAL, 0L);
+    }
+
+    public Waypoint(long id, UUID owner, String code, String name, String world, double x, double y, double z,
+                    String textColor, String icon, String iconColor, int backgroundArgb,
+                    boolean favorite, long favoriteAt, long createdAt, WaypointType type, long expiresAt) {
         this.id = id;
         this.owner = Objects.requireNonNull(owner, "owner");
         this.code = Objects.requireNonNull(code, "code");
@@ -49,11 +58,13 @@ public final class Waypoint {
         this.favorite = favorite;
         this.favoriteAt = favoriteAt;
         this.createdAt = createdAt;
+        this.type = type == null ? WaypointType.NORMAL : type;
+        this.expiresAt = expiresAt;
     }
 
     public Waypoint copy() {
         return new Waypoint(id, owner, code, name, world, x, y, z, textColor, icon, iconColor, backgroundArgb,
-                favorite, favoriteAt, createdAt);
+                favorite, favoriteAt, createdAt, type, expiresAt);
     }
 
     /** Database row id (internal). */
@@ -160,6 +171,23 @@ public final class Waypoint {
 
     public long getCreatedAt() {
         return createdAt;
+    }
+
+    public WaypointType getType() {
+        return type;
+    }
+
+    public boolean isDeath() {
+        return type == WaypointType.DEATH;
+    }
+
+    /** When the waypoint disappears (epoch millis), or 0 when it never expires. */
+    public long getExpiresAt() {
+        return expiresAt;
+    }
+
+    public boolean isExpired(long now) {
+        return expiresAt > 0 && now >= expiresAt;
     }
 
     /** The location, or null when the world is not loaded. */

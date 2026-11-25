@@ -7,7 +7,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 1
+config-version: 2
 
 messages:
   no-permission: "&cYou don't have permission to do that."
@@ -26,7 +26,7 @@ messages:
   region-not-allowed: "&cYou can't create waypoints in this area."
   world-not-loaded: "&cWorld &f{world} &cis not loaded."
   cancelled: "&cThe action was cancelled."
-  economy:
+  cost:
     not-enough: "&cYou need &f{price} &cto do that."
   created: "&aWaypoint {icon_color}{icon} {name} &acreated at &f{x}, {y}, {z}&a."
   created-paid: "&aWaypoint {icon_color}{icon} {name} &acreated for &f{price}&a."
@@ -43,7 +43,6 @@ messages:
   favorite-added: "&e★ {name} &eis now a favorite."
   favorite-removed: "&7{name} &7is no longer a favorite."
   deleted: "&cWaypoint {name} &cdeleted."
-  deleted-refund: "&cWaypoint {name} &cdeleted. &aYou got &f{price} &aback."
   share-self: "&cYou can't share a waypoint with yourself."
   share-target-limit: "&c{player} reached their waypoint limit."
   shared: "&aYou shared {name} &awith &f{player}&a."
@@ -69,6 +68,11 @@ messages:
     - "&7UUID: &f{uuid}"
     - "&8&m                                        "
   teleported: "&aTeleported to {name}&a."
+  teleported-paid: "&aTeleported to {name} &afor &f{price}&a."
+  teleport-disabled: "&cTeleporting to waypoints is disabled."
+  death-created: "&cYou died. &7A {icon_color}{icon} {name} &7waypoint marks the spot for &f{time_left}&7."
+  death-created-permanent: "&cYou died. &7A {icon_color}{icon} {name} &7waypoint marks the spot."
+  death-expired: "&7Your {icon_color}{icon} {name} &7waypoint disappeared."
   update-available: "&eA new version of AdvancedWayPoints is available: &f{version}&e. {changelog}"
   update-downloaded: "&aVersion &f{version} &awas downloaded and will be installed on the next restart."
 
@@ -123,6 +127,7 @@ help:
     favorite: {usage: "favorite <id>", description: "Marks or unmarks a waypoint as favorite."}
     share: {usage: "share <id> <player>", description: "Gives a copy of the waypoint to another player."}
     delete: {usage: "delete <id>", description: "Deletes a waypoint."}
+    teleport: {usage: "tp <id>", description: "Teleports you to one of your waypoints."}
     admin-help: {usage: "admin help [page]", description: "Shows every command (user and admin)."}
     admin-list: {usage: "admin list <player> [page]", description: "Lists a player's waypoints."}
     admin-menu: {usage: "admin menu <player>", description: "Edits a player's waypoints from the menu."}
@@ -134,6 +139,10 @@ help:
     admin-delete: {usage: "admin delete <player> <id>", description: "Deletes a player's waypoint."}
     admin-clear: {usage: "admin clear <player>", description: "Deletes every waypoint of a player."}
     restart: {usage: "restart", description: "Reloads the configuration (not the database)."}
+
+death:
+  # Name of death waypoints (players can rename them).
+  name: "Death"
 
 pages:
   previous: "&b&l« Previous "
@@ -215,25 +224,36 @@ menu:
     admin-title: "&4Waypoints of {owner} &7({page}/{pages})"
     waypoint:
       name: "{icon_color}{icon} {name}"
-      # Lines left empty by an empty placeholder (like {favorite}) are removed automatically.
-      lore:
+      # Lines left empty by an empty placeholder (like {favorite} or {teleport}) are removed automatically.
+      # {left_click} says "show" or "hide" depending on the waypoint; {teleport} only appears with permission.
+      lines:
         - "{favorite}"
+        - "{death}"
         - "&7World: &f{world}"
         - "&7Coordinates: &f{x}, {y}, {z}"
         - "&7Distance: &f{distance}"
         - "&7Created: &f{created}"
         - "&7Status: {status}"
         - ""
-        - "&eLeft click &7to view"
+        - "{left_click}"
         - "&eRight click &7to edit"
-      admin-lore:
+        - "{teleport}"
+      admin-lines:
         - "{favorite}"
+        - "{death}"
         - "&7World: &f{world}"
         - "&7Coordinates: &f{x}, {y}, {z}"
         - "&7Created: &f{created}"
         - "&7ID: &f{code}"
         - ""
         - "&eClick &7to edit"
+        - "{teleport}"
+      left-click-show: "&eLeft click &7to show"
+      left-click-hide: "&eLeft click &7to hide"
+      teleport: "&eShift + left click &7to teleport"
+      teleport-paid: "&eShift + left click &7to teleport &8(&f{price}&8)"
+      death: "&c☠ Death point"
+      death-expires: "&c☠ Death point &7- disappears in &f{time_left}"
       visible: "&aVisible"
       hidden: "&7Hidden"
       favorite: "&e★ Favorite"
@@ -330,7 +350,12 @@ menu:
       teleport:
         name: "&dTeleport"
         lore:
-          - "&7Admins only."
+          - "&7Takes you to this waypoint."
+      teleport-paid:
+        name: "&dTeleport"
+        lore:
+          - "&7Takes you to this waypoint."
+          - "&7Price: &f{price}"
       back: {name: "&7« Back"}
       delete:
         name: "&cDelete"

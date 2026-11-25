@@ -56,6 +56,8 @@ public final class DisplayManager implements WaypointService.ViewRefresher {
     private static final class Viewer {
         TaskHandle task;
         final Map<String, Rendered> labels = new HashMap<>();
+        /** Feet height used for far labels; ignores jumps so the labels do not bounce. */
+        double baseY = Double.NaN;
     }
 
     private final Plugin plugin;
@@ -146,11 +148,12 @@ public final class DisplayManager implements WaypointService.ViewRefresher {
 
         Settings s = settings.get();
         World world = player.getWorld();
-        Location eye = player.getEyeLocation();
+        Location eye = stableEye(player, viewer);
+        long now = System.currentTimeMillis();
         for (String code : visible) {
             Waypoint waypoint = data.get(code).orElse(null);
             Rendered rendered = viewer.labels.get(code);
-            if (waypoint == null || !waypoint.getWorld().equals(world.getName())) {
+            if (waypoint == null || waypoint.isExpired(now) || !waypoint.getWorld().equals(world.getName())) {
                 if (rendered != null) {
                     remove(rendered);
                     viewer.labels.remove(code);
@@ -204,6 +207,28 @@ public final class DisplayManager implements WaypointService.ViewRefresher {
                 rendered.scale = scale;
             }
         }
+    }
+
+    /**
+     * Eye position for placing far labels. A far label sits on the line from the eye to the waypoint, so
+     * every jump would move it up and down. The height used here only follows the player while they stand
+     * on the ground (smoothed, so stairs glide) or fly/swim/fall far, and is ignored during jumps.
+     */
+    @SuppressWarnings("deprecation")
+    private static Location stableEye(Player player, Viewer viewer) {
+        Location feet = player.getLocation();
+        double y = feet.getY();
+        boolean freeMoving = player.isFlying() || player.isGliding() || player.isSwimming() || player.isInsideVehicle();
+        if (Double.isNaN(viewer.baseY) || freeMoving || Math.abs(y - viewer.baseY) > 3D) {
+            viewer.baseY = y;
+        } else if (player.isOnGround()) {
+            viewer.baseY += (y - viewer.baseY) * 0.35D;
+            if (Math.abs(y - viewer.baseY) < 0.01D) {
+                viewer.baseY = y;
+            }
+        }
+        double eyeHeight = player.getEyeLocation().getY() - y;
+        return new Location(feet.getWorld(), feet.getX(), viewer.baseY + eyeHeight, feet.getZ());
     }
 
     /**

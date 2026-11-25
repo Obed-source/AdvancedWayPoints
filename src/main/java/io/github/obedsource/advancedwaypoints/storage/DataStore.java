@@ -54,7 +54,15 @@ public final class DataStore {
     /** Loads everything a player owns. */
     public CompletableFuture<OwnerData> loadOwner(UUID owner, String knownName) {
         return submit(() -> {
-            List<Waypoint> list = waypoints.findByOwner(owner);
+            List<Waypoint> list = new ArrayList<>(waypoints.findByOwner(owner));
+            // Expired waypoints (death points) are removed while loading.
+            long now = System.currentTimeMillis();
+            for (Waypoint waypoint : List.copyOf(list)) {
+                if (waypoint.isExpired(now)) {
+                    waypoints.delete(owner, waypoint.getCode());
+                    list.remove(waypoint);
+                }
+            }
             List<String> visible = players.findVisible(owner);
             boolean accumulate = players.findAccumulate(owner).orElse(false);
             return new OwnerData(owner, knownName, list, visible, accumulate);

@@ -23,6 +23,7 @@ final class FoliaScheduler implements PlatformScheduler {
     private final Method globalExecute;
     private final Method globalRunDelayed;
     private final Method globalCancelTasks;
+    private final Method globalRunAtFixedRate;
     private final Method regionExecute;
     private final Method asyncRunNow;
     private final Method asyncCancelTasks;
@@ -58,6 +59,7 @@ final class FoliaScheduler implements PlatformScheduler {
             globalExecute = globalClass.getMethod("execute", Plugin.class, Runnable.class);
             globalRunDelayed = globalClass.getMethod("runDelayed", Plugin.class, Consumer.class, long.class);
             globalCancelTasks = globalClass.getMethod("cancelTasks", Plugin.class);
+            globalRunAtFixedRate = globalClass.getMethod("runAtFixedRate", Plugin.class, Consumer.class, long.class, long.class);
             regionExecute = regionClass.getMethod("execute", Plugin.class, Location.class, Runnable.class);
             asyncRunNow = asyncClass.getMethod("runNow", Plugin.class, Consumer.class);
             asyncCancelTasks = asyncClass.getMethod("cancelTasks", Plugin.class);
@@ -102,6 +104,13 @@ final class FoliaScheduler implements PlatformScheduler {
     @Override
     public void runGlobalLater(Runnable task, long delayTicks) {
         invoke(globalRunDelayed, globalScheduler, plugin, wrap(task), Math.max(1L, delayTicks));
+    }
+
+    @Override
+    public TaskHandle runGlobalTimer(Runnable task, long delayTicks, long periodTicks) {
+        Object scheduled = invoke(globalRunAtFixedRate, globalScheduler, plugin, wrap(task),
+                Math.max(1L, delayTicks), Math.max(1L, periodTicks));
+        return () -> invoke(taskCancel, scheduled);
     }
 
     @Override

@@ -37,8 +37,7 @@ final class ConfirmDeleteMenu extends Menu {
         filler();
         button("preview", ph, null);
         button("confirm", ph, click -> {
-            boolean ownWaypoint = owner.owner().equals(viewer.getUniqueId());
-            ActionResult result = service.waypoints().delete(owner, code, ownWaypoint ? viewer : null);
+            ActionResult result = service.waypoints().delete(owner, code);
             service.feedback().send(viewer, result);
             service.reopenMain(viewer, owner, admin, returnPage);
         });

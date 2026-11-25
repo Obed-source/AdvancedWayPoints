@@ -19,6 +19,10 @@ public final class Permissions {
     public static final String MODE = "wp.mode";
     public static final String ICON = "wp.icon";
     public static final String NAME_FORMAT = "wp.name.format";
+    /** Get a death waypoint when dying. */
+    public static final String DEATH = "wp.death";
+    /** Teleport to own waypoints (shift + left click, edit menu, /wp tp). */
+    public static final String TELEPORT = "wp.teleport";
     /** Base node for color changes; append "text", "background" or "icon". */
     public static final String COLOR_PREFIX = "wp.color.";
     public static final String LIMIT_PREFIX = "wp.limit.";

@@ -43,6 +43,7 @@ public final class ChatPages {
             new HelpEntry("favorite", Permissions.FAVORITE, false),
             new HelpEntry("share", Permissions.SHARE, false),
             new HelpEntry("delete", Permissions.DELETE, false),
+            new HelpEntry("teleport", Permissions.TELEPORT, false),
             new HelpEntry("admin-help", Permissions.ADMIN_HELP, true),
             new HelpEntry("admin-list", Permissions.ADMIN_LIST, true),
             new HelpEntry("admin-menu", Permissions.ADMIN_MENU, true),

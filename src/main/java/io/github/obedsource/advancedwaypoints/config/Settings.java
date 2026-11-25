@@ -104,13 +104,31 @@ public final class Settings {
     public final boolean shareAllowOffline;
     public final boolean shareCheckTargetLimit;
 
-    // Economy
-    public final boolean createCostEnabled;
-    public final double createCost;
-    public final boolean shareCostEnabled;
-    public final double shareCost;
-    public final boolean deleteRefundEnabled;
-    public final double deleteRefund;
+    // Costs (money or items) per action: create, share, teleport
+    public final CostSpec createCost;
+    public final CostSpec shareCost;
+    public final CostSpec teleportCost;
+
+    // Teleport
+    public final boolean teleportEnabled;
+    public final boolean teleportShortcut;
+    public final boolean teleportInEditMenu;
+
+    // Death waypoints
+    public final boolean deathEnabled;
+    public final RestrictionMode deathWorldMode;
+    public final Set<String> deathWorlds;
+    public final long deathDurationSeconds;
+    public final int deathKeep;
+    public final boolean deathShow;
+    public final boolean deathCountsTowardLimit;
+    public final String deathIcon;
+    public final String deathIconColorKey;
+    public final String deathTextColorKey;
+    public final String deathBackgroundKey;
+    public final String deathFormat;
+    public final String timeLeftFormat;
+    public final String timeLeftHoursFormat;
 
     // Updater
     public final boolean updaterEnabled;
@@ -121,7 +139,7 @@ public final class Settings {
     public final ColorPalette palette;
 
     public Settings(FileConfiguration c, Logger logger) {
-        language = c.getString("language", "es").toLowerCase(Locale.ROOT);
+        language = c.getString("language", "en").toLowerCase(Locale.ROOT);
         messagePrefix = c.getString("message-prefix", "");
         commandName = c.getString("command.name", "waypoints").toLowerCase(Locale.ROOT).trim();
         List<String> aliases = new ArrayList<>();
@@ -160,7 +178,7 @@ public final class Settings {
         randomTextColor = c.getBoolean("waypoints.random-text-color", false);
         defaultTextColorKey = c.getString("waypoints.default-text-color", "white").toLowerCase(Locale.ROOT);
         defaultIconColorKey = c.getString("waypoints.default-icon-color", "white").toLowerCase(Locale.ROOT);
-        defaultBackgroundKey = c.getString("waypoints.default-background-color", "black").toLowerCase(Locale.ROOT);
+        defaultBackgroundKey = c.getString("waypoints.default-background-color", "blue").toLowerCase(Locale.ROOT);
         backgroundAlpha = clamp(c.getInt("waypoints.background-alpha", 160), 0, 255);
 
         worldMode = RestrictionMode.parse(c.getString("restrictions.worlds.mode"));
@@ -210,12 +228,28 @@ public final class Settings {
         shareAllowOffline = c.getBoolean("share.allow-offline-players", true);
         shareCheckTargetLimit = c.getBoolean("share.respect-target-limit", true);
 
-        createCostEnabled = c.getBoolean("economy.create.enabled", false);
-        createCost = Math.max(0D, c.getDouble("economy.create.price", 100D));
-        shareCostEnabled = c.getBoolean("economy.share.enabled", false);
-        shareCost = Math.max(0D, c.getDouble("economy.share.price", 50D));
-        deleteRefundEnabled = c.getBoolean("economy.delete-refund.enabled", false);
-        deleteRefund = Math.max(0D, c.getDouble("economy.delete-refund.amount", 50D));
+        createCost = CostSpec.load(c.getConfigurationSection("costs.create"), logger);
+        shareCost = CostSpec.load(c.getConfigurationSection("costs.share"), logger);
+        teleportCost = CostSpec.load(c.getConfigurationSection("costs.teleport"), logger);
+
+        teleportEnabled = c.getBoolean("teleport.enabled", true);
+        teleportShortcut = c.getBoolean("teleport.shortcut", true);
+        teleportInEditMenu = c.getBoolean("teleport.in-edit-menu", true);
+
+        deathEnabled = c.getBoolean("death-waypoint.enabled", true);
+        deathWorldMode = RestrictionMode.parse(c.getString("death-waypoint.worlds.mode"));
+        deathWorlds = lowerSet(c.getStringList("death-waypoint.worlds.list"));
+        deathDurationSeconds = Math.max(0L, c.getLong("death-waypoint.duration-seconds", 600L));
+        deathKeep = Math.max(1, c.getInt("death-waypoint.keep", 1));
+        deathShow = c.getBoolean("death-waypoint.show-automatically", true);
+        deathCountsTowardLimit = c.getBoolean("death-waypoint.counts-toward-limit", false);
+        deathIcon = c.getString("death-waypoint.icon", "☠");
+        deathIconColorKey = c.getString("death-waypoint.icon-color", "red").toLowerCase(Locale.ROOT);
+        deathTextColorKey = c.getString("death-waypoint.text-color", "red").toLowerCase(Locale.ROOT);
+        deathBackgroundKey = c.getString("death-waypoint.background-color", "black").toLowerCase(Locale.ROOT);
+        deathFormat = c.getString("death-waypoint.format", "{icon_color}{icon} {text_color}{name}{distance} &7{time_left}");
+        timeLeftFormat = c.getString("death-waypoint.time-left.format", "{minutes}:{seconds}");
+        timeLeftHoursFormat = c.getString("death-waypoint.time-left.hours-format", "{hours}:{minutes}:{seconds}");
 
         updaterEnabled = c.getBoolean("updater.enabled", true);
         updaterAutoDownload = c.getBoolean("updater.auto-download", true);

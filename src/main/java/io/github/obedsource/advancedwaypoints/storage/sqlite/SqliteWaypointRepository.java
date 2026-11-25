@@ -1,6 +1,7 @@
 package io.github.obedsource.advancedwaypoints.storage.sqlite;
 
 import io.github.obedsource.advancedwaypoints.api.Waypoint;
+import io.github.obedsource.advancedwaypoints.api.WaypointType;
 import io.github.obedsource.advancedwaypoints.storage.StorageException;
 import io.github.obedsource.advancedwaypoints.storage.WaypointRepository;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 public final class SqliteWaypointRepository implements WaypointRepository {
 
     private static final String COLUMNS = "id, owner, code, name, world, x, y, z, text_color, icon, icon_color, "
-            + "background, favorite, favorite_at, created_at";
+            + "background, favorite, favorite_at, created_at, kind, expires_at";
 
     private final SqliteDatabase database;
 
@@ -62,13 +63,15 @@ public final class SqliteWaypointRepository implements WaypointRepository {
                 rs.getInt("background"),
                 rs.getInt("favorite") != 0,
                 rs.getLong("favorite_at"),
-                rs.getLong("created_at"));
+                rs.getLong("created_at"),
+                WaypointType.byId(rs.getInt("kind")),
+                rs.getLong("expires_at"));
     }
 
     @Override
     public void insert(Waypoint waypoint) throws StorageException {
         String sql = "INSERT INTO awp_waypoints (owner, code, name, world, x, y, z, text_color, icon, icon_color, "
-                + "background, favorite, favorite_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "background, favorite, favorite_at, created_at, kind, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, waypoint.getOwner().toString());
             ps.setString(2, waypoint.getCode());
@@ -84,6 +87,8 @@ public final class SqliteWaypointRepository implements WaypointRepository {
             ps.setInt(12, waypoint.isFavorite() ? 1 : 0);
             ps.setLong(13, waypoint.getFavoriteAt());
             ps.setLong(14, waypoint.getCreatedAt());
+            ps.setInt(15, waypoint.getType().id());
+            ps.setLong(16, waypoint.getExpiresAt());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {

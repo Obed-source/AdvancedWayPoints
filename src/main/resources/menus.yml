@@ -15,7 +15,7 @@
 # ============================================================
 
 # Do not edit: used to update this file automatically.
-config-version: 1
+config-version: 2
 
 # Waypoint list (/wp menu).
 main:
@@ -57,7 +57,10 @@ edit:
     favorite-add: {material: NETHER_STAR, slot: 24}
     favorite-remove: {material: FIREWORK_STAR, slot: 24}
     share: {material: WRITABLE_BOOK, slot: 25}
+    # Shown to players with wp.teleport (config teleport.in-edit-menu) and to admins.
     teleport: {material: ENDER_PEARL, slot: 31}
+    # Same button when teleporting has a price.
+    teleport-paid: {material: ENDER_PEARL, slot: 31}
     back: {material: ARROW, slot: 36}
     delete: {material: BARRIER, slot: 40}
 

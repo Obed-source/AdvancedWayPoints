@@ -61,9 +61,15 @@ class ResourcesTest {
         assertTrue(settings.nameCharacters.matcher("Casa de amigo ñandú 2").matches());
         assertFalse(settings.nameCharacters.matcher("casa'; DROP TABLE").matches());
         assertTrue(settings.updaterEnabled);
-        assertFalse(settings.createCostEnabled);
-        assertFalse(settings.shareCostEnabled);
-        assertFalse(settings.deleteRefundEnabled);
+        assertEquals("en", settings.language);
+        assertEquals("blue", settings.defaultBackgroundKey);
+        assertFalse(settings.createCost.active());
+        assertFalse(settings.shareCost.active());
+        assertFalse(settings.teleportCost.active());
+        assertTrue(settings.deathEnabled);
+        assertEquals("☠", settings.deathIcon);
+        assertTrue(settings.palette.get(settings.deathIconColorKey).isPresent());
+        assertTrue(settings.teleportEnabled && settings.teleportShortcut && settings.teleportInEditMenu);
     }
 
     @Test
@@ -97,7 +103,9 @@ class ResourcesTest {
             // Settings.java reads config.yml, not the language file.
             for (Path file : (Iterable<Path>) files.filter(p -> p.toString().endsWith(".java")
                     && !p.getFileName().toString().equals("Settings.java"))::iterator) {
-                Matcher matcher = literal.matcher(Files.readString(file));
+                // Paths of removed options (migrations) are not expected to exist any more.
+                String source = Files.readString(file).replaceAll("(?m)^.*\\.removed\\(.*$", "");
+                Matcher matcher = literal.matcher(source);
                 while (matcher.find()) {
                     String key = matcher.group(1);
                     if (key.endsWith(".") || key.endsWith("-")) {

@@ -160,13 +160,14 @@ public final class AnvilInputProvider implements InputProvider, Listener {
         }
         session.done = true;
         Player player = (Player) event.getWhoClicked();
-        String value = Text.strip(text).trim();
-        ctx.scheduler().runAtEntity(player, () -> {
+        String value = Text.stripSectionCodes(text).trim();
+        // Never close/open inventories inside an inventory event: wait one tick.
+        ctx.scheduler().runAtEntityLater(player, () -> {
             sessions.remove(player.getUniqueId());
             session.top.clear();
             player.closeInventory();
             session.request.onSubmit().accept(value);
-        });
+        }, 1L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -188,7 +189,9 @@ public final class AnvilInputProvider implements InputProvider, Listener {
         sessions.remove(event.getPlayer().getUniqueId());
         if (!session.done && event.getPlayer() instanceof Player) {
             Player player = (Player) event.getPlayer();
-            ctx.scheduler().runAtEntity(player, session.request.onCancel());
+            // Opening the previous menu inside InventoryCloseEvent leaves the server thinking no menu is open
+            // (clicks are no longer routed to the menu and items can be taken). Reopen it on the next tick.
+            ctx.scheduler().runAtEntityLater(player, session.request.onCancel(), 1L);
         }
     }
 

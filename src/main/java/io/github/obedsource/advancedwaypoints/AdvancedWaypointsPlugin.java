@@ -16,6 +16,7 @@ import io.github.obedsource.advancedwaypoints.integration.UpdateChecker;
 import io.github.obedsource.advancedwaypoints.integration.WaypointsApiImpl;
 import io.github.obedsource.advancedwaypoints.menu.MenuService;
 import io.github.obedsource.advancedwaypoints.scheduler.PlatformScheduler;
+import io.github.obedsource.advancedwaypoints.service.CostService;
 import io.github.obedsource.advancedwaypoints.service.EconomyProvider;
 import io.github.obedsource.advancedwaypoints.service.Feedback;
 import io.github.obedsource.advancedwaypoints.service.LimitService;
@@ -24,6 +25,7 @@ import io.github.obedsource.advancedwaypoints.service.RegionProvider;
 import io.github.obedsource.advancedwaypoints.service.RestrictionService;
 import io.github.obedsource.advancedwaypoints.service.WaypointFormat;
 import io.github.obedsource.advancedwaypoints.service.WaypointService;
+import io.github.obedsource.advancedwaypoints.session.DeathWaypoints;
 import io.github.obedsource.advancedwaypoints.session.PlayerListener;
 import io.github.obedsource.advancedwaypoints.session.SessionManager;
 import io.github.obedsource.advancedwaypoints.storage.DataStore;
@@ -49,13 +51,13 @@ import java.util.logging.Level;
 
 /**
  * AdvancedWayPoints - personal waypoints shown with floating text.
- * Author: XDiez (Obed-source). Licensed under the Apache License 2.0.
+ * Author: Obed-Source. Licensed under the Apache License 2.0.
  * <p>
  * This class only wires the components together; each component has a single responsibility.
  */
 public final class AdvancedWaypointsPlugin extends JavaPlugin {
 
-    private static final String[] BUNDLED_LANGUAGES = {"es", "en"};
+    private static final String[] BUNDLED_LANGUAGES = {"en", "es"};
 
     private PlatformScheduler scheduler;
     private ConfigFile configFile;
@@ -76,14 +78,22 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
     private CommandRegistrar commandRegistrar;
     private CommandServices commandServices;
     private UpdateChecker updater;
+    private DeathWaypoints deathWaypoints;
     private String registeredCommandSignature;
 
     @Override
     public void onEnable() {
         scheduler = PlatformScheduler.create(this);
-        configFile = new ConfigFile(this, "config.yml");
+        // Defaults that changed: replaced only where the owner never edited them.
+        configFile = new ConfigFile(this, "config.yml")
+                .migrateDefault(2, "language", "es")
+                .migrateDefault(2, "waypoints.default-background-color", "black")
+                .migrateDefault(2, "display.update-interval-ticks", 2)
+                .migrateDefault(2, "display.smooth-movement-ticks", 2)
+                .removed(2, "economy");
         menusFile = new ConfigFile(this, "menus.yml");
-        soundsFile = new ConfigFile(this, "sounds.yml");
+        soundsFile = new ConfigFile(this, "sounds.yml")
+                .migrateDefault(2, "sounds.show.sound", "minecraft:block.amethyst_block.chime");
         loadFiles();
 
         database = new SqliteDatabase(new File(getDataFolder(), settings.databaseFile), getLogger());
@@ -104,8 +114,8 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
 
         LimitService limits = new LimitService(() -> settings.defaultLimit);
         waypoints = new WaypointService(() -> settings, sessions, store, limits,
-                new RestrictionService(() -> settings, regions), () -> economy, new NameValidator(() -> settings),
-                scheduler, this::colorName);
+                new RestrictionService(() -> settings, regions), new CostService(() -> economy),
+                new NameValidator(() -> settings), scheduler, this::colorName, () -> messages.raw("death.name"));
         displays = new DisplayManager(this, scheduler, sessions, () -> settings);
         waypoints.setRefresher(displays);
         Feedback feedback = new Feedback(() -> messages, () -> sounds);
@@ -121,6 +131,10 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
                 () -> settings.commandName);
         menus.load(menusFile.get());
         pm.registerEvents(menus, this);
+
+        deathWaypoints = new DeathWaypoints(sessions, waypoints, feedback, () -> messages, () -> settings);
+        pm.registerEvents(deathWaypoints, this);
+        deathWaypoints.start(scheduler);
 
         updater = new UpdateChecker(this, getFile());
         PlayerListener players = new PlayerListener(sessions, displays, input, scheduler, getLogger(), this::notifyUpdate);
@@ -145,13 +159,16 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
 
         getLogger().info("Enabled on " + (scheduler.isFolia() ? "Folia" : Bukkit.getName()) + " " + Bukkit.getBukkitVersion()
                 + " | text input: " + settings.inputType + (input.anvilSupported() ? "" : " (anvil not supported here, using the next method)")
-                + " | by XDiez");
+                + " | by Obed-Source");
     }
 
     @Override
     public void onDisable() {
         if (commandRegistrar != null) {
             commandRegistrar.unregister();
+        }
+        if (deathWaypoints != null) {
+            deathWaypoints.stop();
         }
         if (displays != null) {
             displays.shutdown();
@@ -181,13 +198,13 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
     private YamlConfiguration loadLanguage(String language) {
         YamlConfiguration active = null;
         for (String bundled : BUNDLED_LANGUAGES) {
-            YamlConfiguration loaded = new ConfigFile(this, "lang/" + bundled + ".yml").load();
+            YamlConfiguration loaded = langFile(bundled).load();
             if (bundled.equals(language)) {
                 active = loaded;
             }
         }
         if (active == null) {
-            ConfigFile custom = new ConfigFile(this, "lang/" + language + ".yml");
+            ConfigFile custom = langFile(language);
             if (custom.file().exists()) {
                 active = custom.load();
                 try (InputStreamReader reader = new InputStreamReader(getResource("lang/en.yml"), StandardCharsets.UTF_8)) {
@@ -197,10 +214,19 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
                 }
             } else {
                 getLogger().warning("Language file lang/" + language + ".yml not found, using English");
-                active = new ConfigFile(this, "lang/en.yml").load();
+                active = langFile("en").load();
             }
         }
         return active;
+    }
+
+    /** A language file, with the keys that were renamed or removed in newer versions. */
+    private ConfigFile langFile(String code) {
+        return new ConfigFile(this, "lang/" + code + ".yml")
+                .removed(2, "messages.economy")
+                .removed(2, "messages.deleted-refund")
+                .removed(2, "menu.main.waypoint.lore")
+                .removed(2, "menu.main.waypoint.admin-lore");
     }
 
     private String colorName(String key) {

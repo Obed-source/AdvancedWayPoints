@@ -3,7 +3,7 @@ version: '${version}'
 main: io.github.obedsource.advancedwaypoints.AdvancedWaypointsPlugin
 api-version: '1.19'
 folia-supported: true
-authors: [XDiez, Obed-source]
+author: Obed-Source
 website: https://github.com/Obed-source/AdvancedWayPoints
 description: Personal waypoints with floating text labels, menus, sharing and a developer API.
 softdepend: [WorldGuard, Vault, PlaceholderAPI]
@@ -27,6 +27,7 @@ permissions:
       wp.share: true
       wp.favorite: true
       wp.icon: true
+      wp.death: true
       wp.color.text: true
       wp.color.icon: true
       wp.color.background: true
@@ -66,6 +67,12 @@ permissions:
   wp.icon:
     description: Change the icon of own waypoints (menu only).
     default: true
+  wp.death:
+    description: Get a death waypoint where you die (death-waypoint in config.yml).
+    default: true
+  wp.teleport:
+    description: Teleport to own waypoints (shift + left click, edit menu, /wp tp). Prices in costs.teleport.
+    default: op
   wp.name.format:
     description: Use & color codes in waypoint names.
     default: op

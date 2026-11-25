@@ -46,6 +46,14 @@ class HelpersTest {
         Settings s = settings();
         assertEquals("30m", WaypointFormat.distance(30.4, s));
         assertEquals("1.5km", WaypointFormat.distance(1500, s));
+        long now = System.currentTimeMillis();
+        io.github.obedsource.advancedwaypoints.api.Waypoint death = new io.github.obedsource.advancedwaypoints.api.Waypoint(
+                0L, java.util.UUID.randomUUID(), "abcd", "Death", "world", 0, 64, 0, "&c", "x", "&c", 0,
+                false, 0L, now, io.github.obedsource.advancedwaypoints.api.WaypointType.DEATH, now + 125_000L);
+        assertEquals("2:05", WaypointFormat.timeLeft(death, s));
+        assertTrue(WaypointFormat.label(death, s, "30m").contains("2:05"));
+        assertFalse(death.isExpired(now));
+        assertTrue(death.isExpired(now + 125_000L));
     }
 
     @Test

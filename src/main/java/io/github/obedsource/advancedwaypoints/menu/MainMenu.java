@@ -71,9 +71,21 @@ final class MainMenu extends Menu {
             ph.put("distance", distance.isPresent()
                     ? WaypointFormat.distance(distance.getAsDouble(), settings)
                     : messages.raw("menu.main.waypoint.other-world"));
+            // Dynamic hints: left click shows or hides; shift + left click teleports when allowed.
+            ph.put("left_click", messages.format(messages.raw(visible
+                    ? "menu.main.waypoint.left-click-hide" : "menu.main.waypoint.left-click-show"), ph));
+            ph.put("teleport", canShortcutTeleport()
+                    ? messages.format(messages.raw(service.waypoints().costs().isCharged(viewer, settings.teleportCost)
+                    ? "menu.main.waypoint.teleport-paid" : "menu.main.waypoint.teleport"),
+                    Text.merge(ph, service.waypoints().costs().placeholders(settings.teleportCost)))
+                    : "");
+            ph.put("death", waypoint.isDeath()
+                    ? messages.format(messages.raw(waypoint.getExpiresAt() > 0
+                    ? "menu.main.waypoint.death-expires" : "menu.main.waypoint.death"), ph)
+                    : "");
             String name = messages.get("menu.main.waypoint.name", ph);
             List<String> lore = new java.util.ArrayList<>();
-            for (String line : messages.rawList(admin ? "menu.main.waypoint.admin-lore" : "menu.main.waypoint.lore")) {
+            for (String line : messages.rawList(admin ? "menu.main.waypoint.admin-lines" : "menu.main.waypoint.lines")) {
                 String formatted = messages.format(line, ph);
                 // Lines made only of an empty placeholder (e.g. {favorite}) are dropped.
                 if (line.contains("{") && Text.strip(formatted).trim().isEmpty()) {
@@ -106,7 +118,24 @@ final class MainMenu extends Menu {
         });
     }
 
+    /** Shift + left click teleport: enabled in config and allowed for this viewer. */
+    private boolean canShortcutTeleport() {
+        Settings s = service.settings();
+        if (admin) {
+            return viewer.hasPermission(Permissions.ADMIN_TP);
+        }
+        return s.teleportEnabled && s.teleportShortcut && viewer.hasPermission(Permissions.TELEPORT);
+    }
+
     private void onWaypointClick(String code, ClickType click) {
+        if (click == ClickType.SHIFT_LEFT && canShortcutTeleport()) {
+            ActionResult result = service.waypoints().teleport(viewer, owner, code, admin);
+            if (result.success()) {
+                service.scheduler().runAtEntityLater(viewer, viewer::closeInventory, 1L);
+            }
+            service.feedback().send(viewer, result);
+            return;
+        }
         if (click.isRightClick()) {
             if (!admin && !hasAnyEditPermission()) {
                 service.feedback().noPermission(viewer);
@@ -131,7 +160,7 @@ final class MainMenu extends Menu {
 
     private boolean hasAnyEditPermission() {
         for (String permission : new String[]{Permissions.RENAME, Permissions.DELETE, Permissions.SHARE, Permissions.FAVORITE,
-                Permissions.ICON, Permissions.color("text"), Permissions.color("icon"), Permissions.color("background")}) {
+                Permissions.ICON, Permissions.TELEPORT, Permissions.color("text"), Permissions.color("icon"), Permissions.color("background")}) {
             if (viewer.hasPermission(permission)) {
                 return true;
             }

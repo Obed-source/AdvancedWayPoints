@@ -31,6 +31,7 @@ final class UserCommands {
         list.add(new Favorite(s));
         list.add(new Share(s));
         list.add(new Delete(s));
+        list.add(new Teleport(s));
         list.add(new Restart(s));
         return list;
     }
@@ -291,7 +292,35 @@ final class UserCommands {
             Player player = (Player) sender;
             OwnerData data = self(player);
             if (data != null) {
-                services.feedback().send(player, services.waypoints().delete(data, join(args, 0), player));
+                services.feedback().send(player, services.waypoints().delete(data, join(args, 0)));
+            }
+        }
+
+        @Override
+        public List<String> complete(CommandSender sender, String[] args) {
+            return args.length == 1 ? codes(sender, args[0]) : Collections.emptyList();
+        }
+    }
+
+    static final class Teleport extends SubCommand {
+        Teleport(CommandServices s) {
+            super(s, "tp", List.of("teleport", "teletransportar"), Permissions.TELEPORT, true);
+        }
+
+        @Override
+        public void execute(CommandSender sender, String[] args) {
+            if (!services.config().teleportEnabled) {
+                services.feedback().error(sender, "messages.teleport-disabled", null);
+                return;
+            }
+            if (args.length == 0) {
+                usage(sender, "teleport");
+                return;
+            }
+            Player player = (Player) sender;
+            OwnerData data = self(player);
+            if (data != null) {
+                services.feedback().send(player, services.waypoints().teleport(player, data, join(args, 0), false));
             }
         }
 

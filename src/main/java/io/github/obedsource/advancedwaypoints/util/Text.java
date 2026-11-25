@@ -45,6 +45,14 @@ public final class Text {
         return stripped == null ? "" : stripped;
     }
 
+    /**
+     * Removes section-sign codes only, keeping '&amp;' codes typed by the player
+     * (whether they may use them is decided later by permission).
+     */
+    public static String stripSectionCodes(String input) {
+        return input == null ? "" : input.replaceAll("§[0-9a-fk-orxA-FK-ORX]?", "");
+    }
+
     /** Removes '&' format codes only (keeps every other character). */
     public static String stripAmpersandCodes(String input) {
         return input == null ? "" : FORMAT_CODES.matcher(input).replaceAll("");

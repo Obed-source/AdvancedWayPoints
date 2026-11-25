@@ -71,7 +71,7 @@ public final class WaypointsApiImpl implements AdvancedWaypointsAPI {
     public CompletableFuture<Boolean> deleteWaypoint(UUID owner, String code) {
         return sessions.getOrLoad(owner, null).thenCompose(data -> {
             CompletableFuture<Boolean> result = new CompletableFuture<>();
-            scheduler.runGlobal(() -> result.complete(data.hasCode(code) && waypoints.delete(data, code, null).success()));
+            scheduler.runGlobal(() -> result.complete(data.hasCode(code) && waypoints.delete(data, code).success()));
             return result;
         });
     }

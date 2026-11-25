@@ -22,6 +22,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
+import io.github.obedsource.advancedwaypoints.api.WaypointType;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,25 +60,27 @@ public final class WaypointService {
     private final DataStore store;
     private final LimitService limits;
     private final RestrictionService restrictions;
-    private final Supplier<EconomyProvider> economy;
+    private final CostService costs;
     private final NameValidator names;
     private final PlatformScheduler scheduler;
     private final Function<String, String> colorNames;
+    private final Supplier<String> deathName;
     private ViewRefresher refresher = owner -> { };
     private ShareNotifier shareNotifier = (receiver, copy, sender) -> { };
 
     public WaypointService(Supplier<Settings> settings, SessionManager sessions, DataStore store, LimitService limits,
-                           RestrictionService restrictions, Supplier<EconomyProvider> economy, NameValidator names,
-                           PlatformScheduler scheduler, Function<String, String> colorNames) {
+                           RestrictionService restrictions, CostService costs, NameValidator names,
+                           PlatformScheduler scheduler, Function<String, String> colorNames, Supplier<String> deathName) {
         this.settings = settings;
         this.sessions = sessions;
         this.store = store;
         this.limits = limits;
         this.restrictions = restrictions;
-        this.economy = economy;
+        this.costs = costs;
         this.names = names;
         this.scheduler = scheduler;
         this.colorNames = colorNames;
+        this.deathName = deathName;
     }
 
     public void setRefresher(ViewRefresher refresher) {
@@ -85,6 +93,15 @@ public final class WaypointService {
 
     public LimitService limits() {
         return limits;
+    }
+
+    public CostService costs() {
+        return costs;
+    }
+
+    /** Waypoints of the owner that count toward their limit. */
+    public int countForLimit(OwnerData owner) {
+        return owner.countForLimit(settings.get().deathCountsTowardLimit);
     }
 
     private Map<String, String> ph(Waypoint waypoint, Object... extra) {
@@ -160,10 +177,10 @@ public final class WaypointService {
         if (location.getWorld() == null) {
             return ActionResult.fail("messages.world-not-allowed");
         }
-        double price = 0D;
+        boolean pay = false;
         if (enforceRules && actor != null) {
             int limit = limits.limitOf(actor);
-            if (owner.count() >= limit) {
+            if (countForLimit(owner) >= limit) {
                 return ActionResult.fail("messages.limit-reached", Text.ph("limit", LimitService.display(limit)));
             }
             if (!actor.hasPermission(Permissions.BYPASS_RESTRICTIONS)) {
@@ -172,39 +189,142 @@ public final class WaypointService {
                     return ActionResult.fail(denied.get(), Text.ph("world", location.getWorld().getName()));
                 }
             }
-            if (s.createCostEnabled && s.createCost > 0 && !actor.hasPermission(Permissions.BYPASS_COST)) {
-                if (!economy.get().withdraw(actor, s.createCost)) {
-                    return ActionResult.fail("messages.economy.not-enough", Text.ph("price", economy.get().format(s.createCost)));
-                }
-                price = s.createCost;
+            pay = costs.isCharged(actor, s.createCost);
+            if (pay && !costs.canAfford(actor, s.createCost)) {
+                return ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.createCost));
             }
         }
 
         ColorPalette palette = s.palette;
         String icon = s.randomIcon ? s.icons.get(ThreadLocalRandom.current().nextInt(s.icons.size())) : s.defaultIcon;
-        String iconColor = s.randomIconColor ? palette.random().legacy()
-                : palette.get(s.defaultIconColorKey).map(ColorPalette.Entry::legacy).orElse("&f");
-        String textColor = s.randomTextColor ? palette.random().legacy()
-                : palette.get(s.defaultTextColorKey).map(ColorPalette.Entry::legacy).orElse("&f");
-        int background = palette.get(s.defaultBackgroundKey).map(e -> e.argb(s.backgroundAlpha))
-                .orElse((s.backgroundAlpha << 24));
+        String iconColor = s.randomIconColor ? palette.random().legacy() : legacy(s.defaultIconColorKey, "&f");
+        String textColor = s.randomTextColor ? palette.random().legacy() : legacy(s.defaultTextColorKey, "&f");
+        int background = argb(s.defaultBackgroundKey);
 
         Waypoint waypoint = new Waypoint(0L, owner.owner(), newCode(owner), name.name(), location.getWorld().getName(),
                 location.getX(), location.getY(), location.getZ(), textColor, icon, iconColor, background,
                 false, 0L, System.currentTimeMillis());
         if (!call(new WaypointCreateEvent(waypoint.copy()))) {
-            if (price > 0) {
-                economy.get().deposit(actor, price);
-            }
             return ActionResult.fail("messages.cancelled");
+        }
+        // Affordability was checked above in the same tick; a failure means the inventory changed meanwhile.
+        if (pay && !costs.charge(actor, s.createCost)) {
+            return ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.createCost));
         }
         owner.put(waypoint);
         store.insert(waypoint);
         if (s.showOnCreate) {
             applyShow(owner, waypoint.getCode());
         }
-        return ActionResult.ok(price > 0 ? "messages.created-paid" : "messages.created",
-                ph(waypoint, "price", economy.get().format(price)), SoundService.CREATE, waypoint);
+        return ActionResult.ok(pay ? "messages.created-paid" : "messages.created",
+                Text.merge(ph(waypoint), costs.placeholders(s.createCost)), SoundService.CREATE, waypoint);
+    }
+
+    private String legacy(String paletteKey, String fallback) {
+        return settings.get().palette.get(paletteKey).map(ColorPalette.Entry::legacy).orElse(fallback);
+    }
+
+    private int argb(String paletteKey) {
+        Settings s = settings.get();
+        return s.palette.get(paletteKey).map(e -> e.argb(s.backgroundAlpha)).orElse(s.backgroundAlpha << 24);
+    }
+
+    // ------------------------------------------------------------------ death waypoints
+
+    /**
+     * Creates the death waypoint of a player where they died, removing their oldest death waypoints
+     * beyond death-waypoint.keep. Returns null when death waypoints do not apply.
+     */
+    public ActionResult createDeath(Player player, OwnerData owner, Location location) {
+        Settings s = settings.get();
+        if (!s.deathEnabled || location.getWorld() == null || !player.hasPermission(Permissions.DEATH)) {
+            return null;
+        }
+        String world = location.getWorld().getName().toLowerCase(Locale.ROOT);
+        if ((s.deathWorldMode == Settings.RestrictionMode.WHITELIST && !s.deathWorlds.contains(world))
+                || (s.deathWorldMode == Settings.RestrictionMode.BLACKLIST && s.deathWorlds.contains(world))) {
+            return null;
+        }
+        List<Waypoint> previous = new ArrayList<>();
+        for (Waypoint waypoint : owner.all()) {
+            if (waypoint.isDeath()) {
+                previous.add(waypoint);
+            }
+        }
+        previous.sort(Comparator.comparingLong(Waypoint::getCreatedAt));
+        while (previous.size() >= s.deathKeep) {
+            Waypoint oldest = previous.remove(0);
+            owner.remove(oldest.getCode());
+            store.delete(owner.owner(), oldest.getCode());
+        }
+        long now = System.currentTimeMillis();
+        long expires = s.deathDurationSeconds > 0 ? now + s.deathDurationSeconds * 1000L : 0L;
+        Waypoint waypoint = new Waypoint(0L, owner.owner(), newCode(owner), deathName.get(), location.getWorld().getName(),
+                location.getX(), location.getY(), location.getZ(), legacy(s.deathTextColorKey, "&c"), s.deathIcon,
+                legacy(s.deathIconColorKey, "&c"), argb(s.deathBackgroundKey), false, 0L, now, WaypointType.DEATH, expires);
+        if (!call(new WaypointCreateEvent(waypoint.copy()))) {
+            return null;
+        }
+        owner.put(waypoint);
+        store.insert(waypoint);
+        if (s.deathShow) {
+            applyShow(owner, waypoint.getCode());
+        } else {
+            store.saveVisible(owner.owner(), owner.visible());
+            refresher.refresh(owner.owner());
+        }
+        return ActionResult.ok(expires > 0 ? "messages.death-created" : "messages.death-created-permanent",
+                ph(waypoint), SoundService.CREATE, waypoint);
+    }
+
+    /** Removes the expired waypoints of an owner and returns them. */
+    public List<Waypoint> removeExpired(OwnerData owner) {
+        long now = System.currentTimeMillis();
+        List<Waypoint> removed = new ArrayList<>();
+        for (Waypoint waypoint : owner.all()) {
+            if (waypoint.isExpired(now)) {
+                removed.add(waypoint);
+            }
+        }
+        if (removed.isEmpty()) {
+            return removed;
+        }
+        for (Waypoint waypoint : removed) {
+            owner.remove(waypoint.getCode());
+            store.delete(owner.owner(), waypoint.getCode());
+        }
+        store.saveVisible(owner.owner(), owner.visible());
+        refresher.refresh(owner.owner());
+        return removed;
+    }
+
+    // ------------------------------------------------------------------ teleport
+
+    /**
+     * Teleports a player to a waypoint of the owner.
+     *
+     * @param free no price (admins)
+     */
+    public ActionResult teleport(Player player, OwnerData owner, String input, boolean free) {
+        Optional<Waypoint> found = resolve(owner, input);
+        if (!found.isPresent()) {
+            return notFound(input);
+        }
+        Waypoint waypoint = found.get();
+        Location location = waypoint.toLocation();
+        if (location == null) {
+            return ActionResult.fail("messages.world-not-loaded", ph(waypoint));
+        }
+        Settings s = settings.get();
+        boolean pay = !free && costs.isCharged(player, s.teleportCost);
+        if (pay && !costs.charge(player, s.teleportCost)) {
+            return ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.teleportCost));
+        }
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        scheduler.teleport(player, location);
+        return ActionResult.ok(pay ? "messages.teleported-paid" : "messages.teleported",
+                Text.merge(ph(waypoint), costs.placeholders(s.teleportCost)), SoundService.TELEPORT, waypoint);
     }
 
     // ------------------------------------------------------------------ edit
@@ -341,10 +461,8 @@ public final class WaypointService {
 
     // ------------------------------------------------------------------ delete
 
-    /**
-     * @param refundTo player who receives the configured refund, or null for none
-     */
-    public ActionResult delete(OwnerData owner, String input, Player refundTo) {
+    /** Deletes a waypoint. Money or items paid for it are not given back. */
+    public ActionResult delete(OwnerData owner, String input) {
         Optional<Waypoint> found = resolve(owner, input);
         if (!found.isPresent()) {
             return notFound(input);
@@ -358,12 +476,6 @@ public final class WaypointService {
         store.delete(owner.owner(), waypoint.getCode());
         if (wasVisible) {
             refresher.refresh(owner.owner());
-        }
-        Settings s = settings.get();
-        if (refundTo != null && s.deleteRefundEnabled && s.deleteRefund > 0) {
-            economy.get().deposit(refundTo, s.deleteRefund);
-            return ActionResult.ok("messages.deleted-refund", ph(waypoint, "price", economy.get().format(s.deleteRefund)),
-                    SoundService.DELETE, waypoint);
         }
         return ActionResult.ok("messages.deleted", ph(waypoint), SoundService.DELETE, waypoint);
     }
@@ -390,10 +502,10 @@ public final class WaypointService {
             return CompletableFuture.completedFuture(ActionResult.fail("messages.share-self"));
         }
         Settings s = settings.get();
-        boolean charge = s.shareCostEnabled && s.shareCost > 0 && !actor.hasPermission(Permissions.BYPASS_COST);
-        if (charge && !economy.get().has(actor, s.shareCost)) {
+        boolean charge = costs.isCharged(actor, s.shareCost);
+        if (charge && !costs.canAfford(actor, s.shareCost)) {
             return CompletableFuture.completedFuture(
-                    ActionResult.fail("messages.economy.not-enough", Text.ph("price", economy.get().format(s.shareCost))));
+                    ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.shareCost)));
         }
         Waypoint source = found.get();
         CompletableFuture<ActionResult> result = new CompletableFuture<>();
@@ -425,21 +537,18 @@ public final class WaypointService {
         }
         if (receiver != null && s.shareCheckTargetLimit) {
             int limit = limits.limitOf(receiver);
-            if (target.count() >= limit) {
+            if (target.countForLimit(s.deathCountsTowardLimit) >= limit) {
                 return ActionResult.fail("messages.share-target-limit", Text.ph("player", receiverName));
             }
-        }
-        if (charge && !economy.get().withdraw(actor, s.shareCost)) {
-            return ActionResult.fail("messages.economy.not-enough", Text.ph("price", economy.get().format(s.shareCost)));
         }
         Waypoint copy = new Waypoint(0L, target.owner(), newCode(target), source.getName(), source.getWorld(),
                 source.getX(), source.getY(), source.getZ(), source.getTextColor(), source.getIcon(), source.getIconColor(),
                 source.getBackgroundArgb(), false, 0L, System.currentTimeMillis());
         if (!call(new WaypointShareEvent(copy.copy(), target.owner()))) {
-            if (charge) {
-                economy.get().deposit(actor, s.shareCost);
-            }
             return ActionResult.fail("messages.cancelled");
+        }
+        if (charge && !costs.charge(actor, s.shareCost)) {
+            return ActionResult.fail("messages.cost.not-enough", costs.placeholders(s.shareCost));
         }
         target.put(copy);
         store.insert(copy);
@@ -448,7 +557,7 @@ public final class WaypointService {
             shareNotifier.received(receiver, copy, actor.getName());
         }
         return ActionResult.ok(charge ? "messages.shared-paid" : "messages.shared",
-                ph(source, "player", receiverName, "price", economy.get().format(s.shareCost)), SoundService.SHARE_SEND, source);
+                Text.merge(ph(source, "player", receiverName), costs.placeholders(s.shareCost)), SoundService.SHARE_SEND, source);
     }
 
     // ------------------------------------------------------------------ visibility
