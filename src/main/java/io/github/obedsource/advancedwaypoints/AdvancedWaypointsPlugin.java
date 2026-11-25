@@ -59,7 +59,7 @@ import java.util.logging.Level;
  */
 public final class AdvancedWaypointsPlugin extends JavaPlugin {
 
-    private static final String[] BUNDLED_LANGUAGES = {"en", "es"};
+    private static final String[] BUNDLED_LANGUAGES = {"en", "es", "fr", "de", "pt"};
 
     private PlatformScheduler scheduler;
     private ConfigFile configFile;

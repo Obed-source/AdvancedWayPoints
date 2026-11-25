@@ -1,0 +1,476 @@
+# ============================================================
+#  AdvancedWayPoints - Français
+#  Tous les textes du plugin : messages, aide, liste du chat et menus.
+#  Couleurs : &a, &l... et hex &#RRGGBB. Les {placeholders} sont remplacés automatiquement.
+#  {cmd} est la commande principale configurée (par défaut "waypoints").
+#  Mettez un message à "" pour ne pas l'envoyer.
+# ============================================================
+
+# Ne pas modifier : sert à mettre à jour ce fichier automatiquement.
+config-version: 3
+
+messages:
+  no-permission: "&cVous n'avez pas la permission de faire cela."
+  usage: "&cUtilisation : &f{usage}"
+  loading: "&eVos waypoints sont encore en chargement, réessayez dans une seconde."
+  player-only: "&cSeuls les joueurs peuvent utiliser cette commande."
+  unknown-command: "&cCommande inconnue. Utilisez &f/{command} help&c."
+  player-not-found: "&cLe joueur &f{player} &cest introuvable."
+  player-offline: "&cLe joueur &f{player} &cn'est pas en ligne."
+  not-found: "&cVous n'avez aucun waypoint &f{input}&c."
+  name-empty: "&cLe nom ne peut pas être vide."
+  name-too-long: "&cLe nom peut contenir au maximum &f{max} &ccaractères."
+  name-invalid: "&cLe nom ne peut contenir que des lettres, des chiffres et des espaces."
+  limit-reached: "&cVous avez atteint votre limite de &f{limit} &cwaypoints."
+  world-not-allowed: "&cVous ne pouvez pas créer de waypoints dans ce monde."
+  region-not-allowed: "&cVous ne pouvez pas créer de waypoints dans cette zone."
+  world-not-loaded: "&cLe monde &f{world} &cn'est pas chargé."
+  cancelled: "&cL'action a été annulée."
+  cost:
+    not-enough: "&cIl vous faut &f{price} &cpour faire cela."
+  created: "&aWaypoint {icon_color}{icon} {name} &acréé en &f{x}, {y}, {z}&a."
+  created-paid: "&aWaypoint {icon_color}{icon} {name} &acréé pour &f{price}&a."
+  renamed: "&aLe waypoint s'appelle maintenant {name}&a."
+  color-no-permission: "&cVous n'avez pas la permission d'utiliser la couleur &f{color}&c."
+  color-no-permission-custom: "&cVous n'avez pas la permission d'utiliser des couleurs personnalisées."
+  color-invalid: "&cCouleur invalide : &f{color}&c. Utilisez une couleur de la liste, &f#RRGGBB &cou un code couleur."
+  color-changed:
+    text: "&aCouleur du texte de {name} &achangée en {color}&a."
+    icon: "&aCouleur de l'icône de {name} &achangée en {color}&a."
+    background: "&aFond de {name} &achangé en {color}&a."
+  icon-invalid: "&cCette icône n'est pas dans la liste."
+  icon-changed: "&aIcône de {name} &achangée en {icon_color}{icon}&a."
+  favorite-added: "&e★ {name} &eest maintenant un favori."
+  favorite-removed: "&7{name} &7n'est plus un favori."
+  deleted: "&cWaypoint {name} &csupprimé."
+  share-self: "&cVous ne pouvez pas partager un waypoint avec vous-même."
+  share-target-limit: "&c{player} a atteint sa limite de waypoints."
+  shared: "&a{player} a accepté {name}&a."
+  shared-paid: "&a{player} a accepté {name}&a. Vous avez payé &f{price}&a."
+  shown: "&aAffichage de {icon_color}{icon} {name}&a."
+  shown-accumulate: "&aAffichage aussi de {icon_color}{icon} {name}&a."
+  hidden: "&7Vous avez masqué {name}&7."
+  not-visible: "&c{name} &cn'est pas visible."
+  nothing-visible: "&cVous n'avez aucun waypoint visible."
+  hidden-all: "&7Vous avez masqué tous vos waypoints (ils restent dans votre liste)."
+  mode-single: "&eMode d'affichage : &fun à la fois&e. Choisir un waypoint masque le précédent."
+  mode-accumulate: "&eMode d'affichage : &fcumulé&e. Les waypoints choisis s'ajoutent à l'écran."
+  restarted: "&aConfiguration rechargée (les données n'ont pas été rechargées)."
+  admin-cleared: "&c&f{count} &cwaypoints de &f{player} &csupprimés."
+  admin-info:
+    - "&8&m                                        "
+    - "&b&lWaypoints de &f{player}"
+    - "&7Waypoints : &f{count} &8/ &f{limit}"
+    - "&7Visibles : &f{visible}"
+    - "&7Mode d'affichage : &f{mode}"
+    - "&7En ligne : &f{online}"
+    - "&7UUID : &f{uuid}"
+    - "&8&m                                        "
+  teleported: "&aTéléporté à {name}&a."
+  teleported-paid: "&aTéléporté à {name} &apour &f{price}&a."
+  teleport-disabled: "&cLa téléportation vers les waypoints est désactivée."
+  teleport-other-world: "&c{name} &cest dans un autre monde. Vous ne pouvez vous téléporter qu'aux waypoints de votre monde actuel."
+  death-created: "&cVous êtes mort. &7Un waypoint {icon_color}{icon} {name} &7marque l'endroit pendant &f{time_left}&7."
+  death-created-permanent: "&cVous êtes mort. &7Un waypoint {icon_color}{icon} {name} &7marque l'endroit."
+  death-expired: "&7Votre waypoint {icon_color}{icon} {name} &7a disparu."
+  death-not-editable: "&cLes waypoints de mort ne peuvent pas être modifiés."
+  share-disabled: "&cLe partage de waypoints est désactivé."
+  share-death-disabled: "&cLes waypoints de mort ne peuvent pas être partagés."
+  share-request-sent: "&aDemande envoyée à &f{player}&a. Il a &f{seconds}s &apour accepter {name}&a."
+  share-target-loading: "&c{player} est encore en chargement, réessayez dans une seconde."
+  share-request-not-found: "&cCette demande de partage n'existe plus."
+  share-sender-offline: "&c{player} n'est plus en ligne."
+  share-waypoint-gone: "&cCe waypoint n'existe plus."
+  share-failed-cost: "&c{player} a accepté {name}&c, mais vous n'avez pas pu payer &f{price}&c."
+  share-sender-cannot-pay: "&c{player} ne peut pas payer le partage pour le moment."
+  share-accepted: "&aVous avez accepté {icon_color}{icon} {name} &ade &f{player}&a. Il est maintenant visible."
+  share-declined: "&7Vous avez refusé le waypoint de &f{player}&7."
+  share-declined-sender: "&c{player} a refusé votre waypoint."
+  share-expired-sender: "&7{player} n'a pas répondu à votre demande de partage."
+  share-expired-receiver: "&7La demande de partage de {player} a expiré."
+  update-available: "&eUne nouvelle version d'AdvancedWayPoints est disponible : &f{version}&e. {changelog}"
+  update-downloaded: "&aLa version &f{version} &aa été téléchargée et sera installée au prochain redémarrage."
+
+input:
+  anvil-title:
+    rename: "Nouveau nom"
+    share: "Nom du joueur"
+    create: "Nom du waypoint"
+  # Deux lignes affichées sur le panneau, sous ce que le joueur écrit.
+  sign-lines:
+    rename:
+      - "^^^^^^^^^^"
+      - "Nouveau nom"
+    share:
+      - "^^^^^^^^^^"
+      - "Joueur"
+    create:
+      - "^^^^^^^^^^"
+      - "Nom"
+  chat-prompt:
+    rename: "&eÉcrivez le nouveau nom dans le chat. Écrivez &f{cancel} &epour annuler &7({seconds}s)."
+    share: "&eÉcrivez le nom du joueur dans le chat. Écrivez &f{cancel} &epour annuler &7({seconds}s)."
+    create: "&eÉcrivez le nom du waypoint dans le chat. Écrivez &f{cancel} &epour annuler &7({seconds}s)."
+  command-prompt:
+    rename: "&e[Cliquez ici] &7pour écrire le nouveau nom."
+    share: "&e[Cliquez ici] &7pour écrire le nom du joueur."
+    create: "&e[Cliquez ici] &7pour écrire le nom du waypoint."
+  command-hover:
+    - "&7Écrivez la valeur et appuyez sur &fEntrée&7."
+  timeout: "&cLe temps pour écrire est écoulé."
+
+help:
+  header:
+    - "&8&m          &r &b&lWaypoints &7- Aide &8(&f{page}&8/&f{pages}&8) &8&m          "
+  admin-header:
+    - "&8&m       &r &c&lWaypoints &7- Aide admin &8(&f{page}&8/&f{pages}&8) &8&m       "
+  line: " &b{usage} &8- &7{description}"
+  admin-line: " &c{usage} &8- &7{description}"
+  hover:
+    - "&7Cliquez pour écrire la commande"
+  entries:
+    help: {usage: "help [page]", description: "Affiche cette aide."}
+    menu: {usage: "menu", description: "Ouvre votre menu de waypoints."}
+    create: {usage: "create <nom>", description: "Crée un waypoint là où vous êtes."}
+    list: {usage: "list [page]", description: "Liste vos waypoints. Cliquez sur l'un d'eux pour le voir."}
+    view: {usage: "view <id>", description: "Affiche ou masque un waypoint."}
+    hide: {usage: "hide <id>", description: "Masque un waypoint (il reste dans la liste)."}
+    hide-all: {usage: "hide all", description: "Masque tous vos waypoints."}
+    mode: {usage: "mode", description: "Alterne entre un à la fois et cumulé."}
+    rename: {usage: "rename <id> <nom>", description: "Renomme un waypoint."}
+    color: {usage: "color <id> <text|icon|background> <couleur>", description: "Change une couleur d'un waypoint."}
+    favorite: {usage: "favorite <id>", description: "Marque ou retire un waypoint des favoris."}
+    share: {usage: "share <id> <joueur>", description: "Propose une copie du waypoint à un joueur en ligne."}
+    delete: {usage: "delete <id>", description: "Supprime un waypoint."}
+    teleport: {usage: "tp <id>", description: "Vous téléporte à l'un de vos waypoints."}
+    admin-help: {usage: "admin help [page]", description: "Affiche toutes les commandes (joueur et admin)."}
+    admin-list: {usage: "admin list <joueur> [page]", description: "Liste les waypoints d'un joueur."}
+    admin-menu: {usage: "admin menu <joueur>", description: "Modifie les waypoints d'un joueur depuis le menu."}
+    admin-info: {usage: "admin info <joueur>", description: "Données des waypoints d'un joueur."}
+    admin-tp: {usage: "admin tp <joueur> <id>", description: "Vous téléporte au waypoint d'un joueur."}
+    admin-create: {usage: "admin create <joueur> <nom>", description: "Crée un waypoint pour un joueur là où vous êtes."}
+    admin-rename: {usage: "admin rename <joueur> <id> <nom>", description: "Renomme le waypoint d'un joueur."}
+    admin-color: {usage: "admin color <joueur> <id> <text|icon|background> <couleur>", description: "Change une couleur du waypoint d'un joueur."}
+    admin-delete: {usage: "admin delete <joueur> <id>", description: "Supprime le waypoint d'un joueur."}
+    admin-clear: {usage: "admin clear <joueur>", description: "Supprime tous les waypoints d'un joueur."}
+    restart: {usage: "restart", description: "Recharge la configuration (pas la base de données)."}
+
+share-request:
+  received: "&b{player} &aveut partager {icon_color}{icon} {name} &aavec vous &7({seconds}s)."
+  accept: "&a&l[ACCEPTER]"
+  separator: " "
+  decline: "&c&l[REFUSER]"
+  accept-hover:
+    - "&7Ajouter {name} &7à vos waypoints"
+  decline-hover:
+    - "&7Refuser le waypoint"
+
+teleport:
+  # Affiché au début du compte à rebours, selon le mode d'annulation (teleport.countdown.cancel-on).
+  countdown-start:
+    none: "&eTéléportation vers {name} &edans &f{seconds}s&e."
+    damage: "&eTéléportation vers {name} &edans &f{seconds}s&e. Subir des dégâts l'annule."
+    movement: "&eTéléportation vers {name} &edans &f{seconds}s&e. Ne bougez pas."
+  countdown: "&eTéléportation dans &f{seconds}&e..."
+  cancelled-damage: "&cTéléportation annulée : vous avez subi des dégâts."
+  cancelled-movement: "&cTéléportation annulée : vous avez bougé."
+  # Quand le joueur demande une autre téléportation (même waypoint ou un autre) pendant un compte à rebours.
+  cancelled-request: "&cTéléportation vers {name} &cannulée."
+
+death:
+  # Nom des waypoints de mort (les joueurs peuvent les renommer).
+  name: "Mort"
+
+pages:
+  previous: "&b&l« Précédent "
+  previous-disabled: "&8« Précédent "
+  next: " &b&lSuivant »"
+  next-disabled: " &8Suivant »"
+  current: "&7[&f{page}&7/&f{pages}&7]"
+  previous-hover:
+    - "&7Aller à la page précédente"
+  next-hover:
+    - "&7Aller à la page suivante"
+
+list:
+  header:
+    - "&8&m        &r &b&lVos waypoints &8(&f{count}&8/&f{limit}&8) &7Mode : &f{mode} &8&m        "
+  admin-header:
+    - "&8&m        &r &c&lWaypoints de {owner} &8(&f{count}&8) &8&m        "
+  empty:
+    - " &7Aucun waypoint pour l'instant. Créez-en un avec &f/{cmd} create <nom>&7."
+  # Placeholders : {visible} {favorite} {icon_color} {icon} {name} {x} {y} {z} {world} {distance} {created}
+  entry: " {visible} {favorite}{icon_color}{icon} {name} &8» &7{x}, {y}, {z} &8(&7{world}&8)"
+  hover:
+    - "{icon_color}{icon} {name}"
+    - "&7Monde : &f{world}"
+    - "&7Coordonnées : &f{x}, {y}, {z}"
+    - "&7Distance : &f{distance}"
+    - "&7Créé le : &f{created}"
+    - ""
+    - "&eCliquez &7pour afficher ou masquer"
+    - "&eMaj + clic &7pour écrire son ID dans le chat"
+  admin-hover:
+    - "{icon_color}{icon} {name}"
+    - "&7Monde : &f{world}"
+    - "&7Coordonnées : &f{x}, {y}, {z}"
+    - "&7Créé le : &f{created}"
+    - "&7ID : &f{code}"
+    - ""
+    - "&eCliquez &7pour le modifier"
+  hover-id:
+    - "&7ID : &f{code}"
+  visible-marker: "&a●"
+  hidden-marker: "&8○"
+  favorite-marker: "&e★ "
+  other-world: "autre monde"
+
+placeholders:
+  mode-single: "un à la fois"
+  mode-accumulate: "cumulé"
+  none: "aucun"
+  answer-yes: "oui"
+  answer-no: "non"
+  other-world: "autre monde"
+  free: "gratuit"
+  never: "jamais"
+  type-normal: "waypoint"
+  type-death: "mort"
+
+colors:
+  white: "&fBlanc"
+  light_gray: "&7Gris clair"
+  gray: "&8Gris"
+  black: "&0Noir"
+  brown: "&#8B5A2BMarron"
+  red: "&cRouge"
+  orange: "&6Orange"
+  yellow: "&eJaune"
+  lime: "&aVert clair"
+  green: "&2Vert"
+  cyan: "&3Cyan"
+  light_blue: "&bBleu clair"
+  blue: "&9Bleu"
+  purple: "&5Violet"
+  magenta: "&dMagenta"
+  pink: "&#FFB6C1Rose"
+
+menu:
+  # Ajouté à la description des boutons sans permission (quand menus.hide-items-without-permission est false).
+  no-permission-lore:
+    - ""
+    - "&c✖ Vous n'avez pas la permission pour cela"
+  main:
+    title: "&8Vos waypoints &7({page}/{pages})"
+    admin-title: "&4Waypoints de {owner} &7({page}/{pages})"
+    waypoint:
+      name: "{icon_color}{icon} {name}"
+      # Chaque ligne est du texte libre. Disponibles : {name} {name_plain} {icon} {icon_color} {text_color} {world} {x} {y} {z}
+      # {distance} {created} {status} {code} {time_left} {favorite} {death} {left_click} {teleport}
+      # {teleport_price} {share_price} {create_price} ("gratuit" quand cela ne coûte rien à ce joueur).
+      lines:
+        - "{favorite}"
+        - "{death}"
+        - "&7Monde : &f{world}"
+        - "&7Coordonnées : &f{x}, {y}, {z}"
+        - "&7Distance : &f{distance}"
+        - "&7Créé le : &f{created}"
+        - "&7État : {status}"
+        - ""
+        - "{left_click}"
+        - "&eClic droit &7pour modifier"
+        - "{teleport}"
+      admin-lines:
+        - "{favorite}"
+        - "{death}"
+        - "&7Monde : &f{world}"
+        - "&7Coordonnées : &f{x}, {y}, {z}"
+        - "&7Créé le : &f{created}"
+        - "&7ID : &f{code}"
+        - ""
+        - "&eCliquez &7pour modifier"
+        - "{teleport}"
+      left-click-show: "&eClic gauche &7pour afficher"
+      left-click-hide: "&eClic gauche &7pour masquer"
+      teleport: "&eMaj + clic gauche &7pour se téléporter"
+      teleport-paid: "&eMaj + clic gauche &7pour se téléporter &8(&f{price}&8)"
+      death: "&c☠ Point de mort"
+      death-expires: "&c☠ Point de mort &7- disparaît dans &f{time_left}"
+      visible: "&aVisible"
+      hidden: "&7Masqué"
+      favorite: "&e★ Favori"
+      other-world: "autre monde"
+    items:
+      filler: {name: " "}
+      empty:
+        name: "&7Vous n'avez encore aucun waypoint"
+        lore:
+          - "&7Créez-en un avec le livre ci-dessous"
+          - "&7ou avec &f/{cmd} create <nom>"
+      info:
+        name: "&b&lWaypoints de {owner}"
+        lore:
+          - "&7Waypoints : &f{count}"
+          - "&7Visibles : &f{visible}"
+      view-mode-single:
+        name: "&eAffichage : &fun à la fois"
+        lore:
+          - "&7Choisir un waypoint masque"
+          - "&7celui qui était visible."
+          - ""
+          - "&eCliquez &7pour passer en &fcumulé"
+      view-mode-accumulate:
+        name: "&eAffichage : &fcumulé"
+        lore:
+          - "&7Les waypoints choisis s'ajoutent"
+          - "&7à ceux qui sont visibles."
+          - ""
+          - "&eCliquez &7pour passer en &fun à la fois"
+      hide-all:
+        name: "&cTout masquer"
+        lore:
+          - "&7Retire tous les waypoints de l'écran."
+          - "&7Ils restent dans votre liste."
+      previous-page: {name: "&b« Page précédente", lore: ["&7Page {page} sur {pages}"]}
+      previous-page-disabled: {name: "&8« Page précédente"}
+      page-info: {name: "&fPage {page}/{pages}"}
+      next-page: {name: "&bPage suivante »", lore: ["&7Page {page} sur {pages}"]}
+      next-page-disabled: {name: "&8Page suivante »"}
+      create:
+        name: "&aCréer un waypoint ici"
+        lore:
+          - "&7Enregistre votre position actuelle"
+          - "&7avec le nom que vous écrivez."
+      close: {name: "&cFermer"}
+  edit:
+    title: "&8Modifier : {name_plain}"
+    items:
+      filler: {name: " "}
+      preview:
+        name: "{icon_color}{icon} {name}"
+        lore:
+          - "&7Monde : &f{world}"
+          - "&7Coordonnées : &f{x}, {y}, {z}"
+          - "&7Créé le : &f{created}"
+      rename:
+        name: "&eRenommer"
+        lore:
+          - "&7Actuel : {name}"
+          - ""
+          - "&eCliquez &7pour en écrire un nouveau"
+      text-color:
+        name: "&eCouleur du texte"
+        lore:
+          - "&7Actuelle : {text_color_name}"
+      icon:
+        name: "&eIcône : {icon_color}{icon}"
+        lore:
+          - "&7Le symbole affiché avant le nom."
+          - ""
+          - "&eCliquez &7pour en choisir une autre"
+      icon-color:
+        name: "&eCouleur de l'icône"
+        lore:
+          - "&7Actuelle : {icon_color_name}"
+      background-color:
+        name: "&eCouleur du fond"
+        lore:
+          - "&7Actuelle : {background_name}"
+      favorite-add:
+        name: "&e★ Ajouter aux favoris"
+        lore:
+          - "&7Les favoris apparaissent en premier."
+      favorite-remove:
+        name: "&7☆ Retirer des favoris"
+        lore:
+          - "&7Il revient à l'ordre par date."
+      share:
+        name: "&bPartager"
+        lore:
+          - "&7Envoie une copie à un autre joueur."
+          - "&7Il doit être en ligne et l'accepter."
+      share-paid:
+        name: "&bPartager"
+        lore:
+          - "&7Envoie une copie à un autre joueur."
+          - "&7Il doit être en ligne et l'accepter."
+          - "&7Prix : &f{share_price}"
+      death-locked:
+        name: "&c☠ Point de mort"
+        lore:
+          - "&7Son nom, ses couleurs et son icône ne peuvent pas être changés."
+          - "&7Disparaît dans : &f{time_left}"
+      teleport:
+        name: "&dSe téléporter"
+        lore:
+          - "&7Vous emmène à ce waypoint."
+      teleport-paid:
+        name: "&dSe téléporter"
+        lore:
+          - "&7Vous emmène à ce waypoint."
+          - "&7Prix : &f{price}"
+      back: {name: "&7« Retour"}
+      delete:
+        name: "&cSupprimer"
+        lore:
+          - "&7Une confirmation vous sera demandée."
+  color:
+    title:
+      text: "&8Couleur du texte"
+      icon: "&8Couleur de l'icône"
+      background: "&8Couleur du fond"
+    color-item:
+      name: "{color}"
+      lore:
+        - "&7Code : &f{hex}"
+      selected:
+        - ""
+        - "&a✔ Sélectionnée"
+      click:
+        - ""
+        - "&eCliquez &7pour appliquer"
+      locked:
+        - ""
+        - "&c✖ Vous n'avez pas la permission pour cette couleur"
+    items:
+      filler: {name: " "}
+      back: {name: "&7« Retour"}
+      previous-page: {name: "&b« Page précédente"}
+      previous-page-disabled: {name: "&8« Page précédente"}
+      page-info: {name: "&fPage {page}/{pages}"}
+      next-page: {name: "&bPage suivante »"}
+      next-page-disabled: {name: "&8Page suivante »"}
+  icon:
+    title: "&8Choisissez une icône"
+    icon-item:
+      name: "&f{new_icon}"
+      lore:
+        - "&7Cela ressemblera à :"
+        - "{icon_color}{new_icon} {name}"
+      selected:
+        - ""
+        - "&a✔ Icône actuelle"
+      click:
+        - ""
+        - "&eCliquez &7pour l'utiliser"
+    items:
+      filler: {name: " "}
+      back: {name: "&7« Retour"}
+      previous-page: {name: "&b« Page précédente"}
+      previous-page-disabled: {name: "&8« Page précédente"}
+      page-info: {name: "&fPage {page}/{pages}"}
+      next-page: {name: "&bPage suivante »"}
+      next-page-disabled: {name: "&8Page suivante »"}
+  confirm-delete:
+    title: "&4Supprimer ce waypoint ?"
+    items:
+      filler: {name: " "}
+      confirm:
+        name: "&a✔ Oui, supprimer"
+        lore:
+          - "&7C'est irréversible."
+      preview:
+        name: "{icon_color}{icon} {name}"
+        lore:
+          - "&7{world} &8- &7{x}, {y}, {z}"
+      cancel: {name: "&c✖ Non, revenir"}

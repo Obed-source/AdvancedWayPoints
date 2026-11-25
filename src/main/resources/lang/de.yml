@@ -1,0 +1,476 @@
+# ============================================================
+#  AdvancedWayPoints - Deutsch
+#  Alle Texte des Plugins: Nachrichten, Hilfe, Chat-Liste und Menüs.
+#  Farben: &a, &l... und Hex &#RRGGBB. {Platzhalter} werden automatisch ersetzt.
+#  {cmd} ist der eingestellte Hauptbefehl (Standard "waypoints").
+#  Setze eine Nachricht auf "", um sie nicht zu senden.
+# ============================================================
+
+# Nicht bearbeiten: wird für die automatische Aktualisierung dieser Datei verwendet.
+config-version: 3
+
+messages:
+  no-permission: "&cDazu hast du keine Berechtigung."
+  usage: "&cVerwendung: &f{usage}"
+  loading: "&eDeine Wegpunkte werden noch geladen, versuche es gleich noch einmal."
+  player-only: "&cNur Spieler können diesen Befehl verwenden."
+  unknown-command: "&cUnbekannter Befehl. Verwende &f/{command} help&c."
+  player-not-found: "&cSpieler &f{player} &cwurde nicht gefunden."
+  player-offline: "&cSpieler &f{player} &cist nicht online."
+  not-found: "&cDu hast keinen Wegpunkt &f{input}&c."
+  name-empty: "&cDer Name darf nicht leer sein."
+  name-too-long: "&cDer Name darf höchstens &f{max} &cZeichen haben."
+  name-invalid: "&cDer Name darf nur Buchstaben, Zahlen und Leerzeichen enthalten."
+  limit-reached: "&cDu hast dein Limit von &f{limit} &cWegpunkten erreicht."
+  world-not-allowed: "&cIn dieser Welt kannst du keine Wegpunkte erstellen."
+  region-not-allowed: "&cIn diesem Bereich kannst du keine Wegpunkte erstellen."
+  world-not-loaded: "&cDie Welt &f{world} &cist nicht geladen."
+  cancelled: "&cDie Aktion wurde abgebrochen."
+  cost:
+    not-enough: "&cDafür brauchst du &f{price}&c."
+  created: "&aWegpunkt {icon_color}{icon} {name} &abei &f{x}, {y}, {z} &aerstellt."
+  created-paid: "&aWegpunkt {icon_color}{icon} {name} &afür &f{price} &aerstellt."
+  renamed: "&aDer Wegpunkt heißt jetzt {name}&a."
+  color-no-permission: "&cDu hast keine Berechtigung, die Farbe &f{color} &czu verwenden."
+  color-no-permission-custom: "&cDu hast keine Berechtigung, eigene Farben zu verwenden."
+  color-invalid: "&cUngültige Farbe: &f{color}&c. Verwende eine Farbe aus der Liste, &f#RRGGBB &coder einen Farbcode."
+  color-changed:
+    text: "&aTextfarbe von {name} &azu {color} &ageändert."
+    icon: "&aSymbolfarbe von {name} &azu {color} &ageändert."
+    background: "&aHintergrund von {name} &azu {color} &ageändert."
+  icon-invalid: "&cDieses Symbol ist nicht in der Liste."
+  icon-changed: "&aSymbol von {name} &azu {icon_color}{icon} &ageändert."
+  favorite-added: "&e★ {name} &eist jetzt ein Favorit."
+  favorite-removed: "&7{name} &7ist kein Favorit mehr."
+  deleted: "&cWegpunkt {name} &cgelöscht."
+  share-self: "&cDu kannst keinen Wegpunkt mit dir selbst teilen."
+  share-target-limit: "&c{player} hat das Wegpunkt-Limit erreicht."
+  shared: "&a{player} hat {name} &aangenommen."
+  shared-paid: "&a{player} hat {name} &aangenommen. Du hast &f{price} &abezahlt."
+  shown: "&aZeige {icon_color}{icon} {name}&a."
+  shown-accumulate: "&aZeige zusätzlich {icon_color}{icon} {name}&a."
+  hidden: "&7Du hast {name} &7ausgeblendet."
+  not-visible: "&c{name} &cist nicht sichtbar."
+  nothing-visible: "&cDu hast keine sichtbaren Wegpunkte."
+  hidden-all: "&7Du hast alle Wegpunkte ausgeblendet (sie bleiben in deiner Liste)."
+  mode-single: "&eAnzeigemodus: &feinzeln&e. Ein gewählter Wegpunkt blendet den vorherigen aus."
+  mode-accumulate: "&eAnzeigemodus: &fsammeln&e. Gewählte Wegpunkte werden zusammen angezeigt."
+  restarted: "&aKonfiguration neu geladen (die Daten wurden nicht neu geladen)."
+  admin-cleared: "&c&f{count} &cWegpunkte von &f{player} &cgelöscht."
+  admin-info:
+    - "&8&m                                        "
+    - "&b&lWegpunkte von &f{player}"
+    - "&7Wegpunkte: &f{count} &8/ &f{limit}"
+    - "&7Sichtbar: &f{visible}"
+    - "&7Anzeigemodus: &f{mode}"
+    - "&7Online: &f{online}"
+    - "&7UUID: &f{uuid}"
+    - "&8&m                                        "
+  teleported: "&aZu {name} &ateleportiert."
+  teleported-paid: "&aFür &f{price} &azu {name} &ateleportiert."
+  teleport-disabled: "&cDas Teleportieren zu Wegpunkten ist deaktiviert."
+  teleport-other-world: "&c{name} &cist in einer anderen Welt. Du kannst dich nur zu Wegpunkten in deiner aktuellen Welt teleportieren."
+  death-created: "&cDu bist gestorben. &7Ein Wegpunkt {icon_color}{icon} {name} &7markiert die Stelle für &f{time_left}&7."
+  death-created-permanent: "&cDu bist gestorben. &7Ein Wegpunkt {icon_color}{icon} {name} &7markiert die Stelle."
+  death-expired: "&7Dein Wegpunkt {icon_color}{icon} {name} &7ist verschwunden."
+  death-not-editable: "&cTodes-Wegpunkte können nicht geändert werden."
+  share-disabled: "&cDas Teilen von Wegpunkten ist deaktiviert."
+  share-death-disabled: "&cTodes-Wegpunkte können nicht geteilt werden."
+  share-request-sent: "&aAnfrage an &f{player} &agesendet. Er hat &f{seconds}s&a, um {name} &aanzunehmen."
+  share-target-loading: "&c{player} wird noch geladen, versuche es gleich noch einmal."
+  share-request-not-found: "&cDiese Teilen-Anfrage existiert nicht mehr."
+  share-sender-offline: "&c{player} ist nicht mehr online."
+  share-waypoint-gone: "&cDieser Wegpunkt existiert nicht mehr."
+  share-failed-cost: "&c{player} hat {name} &cangenommen, aber du konntest &f{price} &cnicht bezahlen."
+  share-sender-cannot-pay: "&c{player} kann das Teilen gerade nicht bezahlen."
+  share-accepted: "&aDu hast {icon_color}{icon} {name} &avon &f{player} &aangenommen. Er ist jetzt sichtbar."
+  share-declined: "&7Du hast den Wegpunkt von &f{player} &7abgelehnt."
+  share-declined-sender: "&c{player} hat deinen Wegpunkt abgelehnt."
+  share-expired-sender: "&7{player} hat nicht auf deine Teilen-Anfrage geantwortet."
+  share-expired-receiver: "&7Die Teilen-Anfrage von {player} ist abgelaufen."
+  update-available: "&eEine neue Version von AdvancedWayPoints ist verfügbar: &f{version}&e. {changelog}"
+  update-downloaded: "&aVersion &f{version} &awurde heruntergeladen und wird beim nächsten Neustart installiert."
+
+input:
+  anvil-title:
+    rename: "Neuer Name"
+    share: "Spielername"
+    create: "Wegpunktname"
+  # Zwei Zeilen auf dem Schild, unter dem, was der Spieler schreibt.
+  sign-lines:
+    rename:
+      - "^^^^^^^^^^"
+      - "Neuer Name"
+    share:
+      - "^^^^^^^^^^"
+      - "Spieler"
+    create:
+      - "^^^^^^^^^^"
+      - "Name"
+  chat-prompt:
+    rename: "&eSchreibe den neuen Namen in den Chat. Schreibe &f{cancel}&e, um abzubrechen &7({seconds}s)."
+    share: "&eSchreibe den Spielernamen in den Chat. Schreibe &f{cancel}&e, um abzubrechen &7({seconds}s)."
+    create: "&eSchreibe den Wegpunktnamen in den Chat. Schreibe &f{cancel}&e, um abzubrechen &7({seconds}s)."
+  command-prompt:
+    rename: "&e[Hier klicken]&7, um den neuen Namen zu schreiben."
+    share: "&e[Hier klicken]&7, um den Spielernamen zu schreiben."
+    create: "&e[Hier klicken]&7, um den Wegpunktnamen zu schreiben."
+  command-hover:
+    - "&7Schreibe den Wert und drücke &fEnter&7."
+  timeout: "&cDie Zeit zum Schreiben ist abgelaufen."
+
+help:
+  header:
+    - "&8&m          &r &b&lWegpunkte &7- Hilfe &8(&f{page}&8/&f{pages}&8) &8&m          "
+  admin-header:
+    - "&8&m       &r &c&lWegpunkte &7- Admin-Hilfe &8(&f{page}&8/&f{pages}&8) &8&m       "
+  line: " &b{usage} &8- &7{description}"
+  admin-line: " &c{usage} &8- &7{description}"
+  hover:
+    - "&7Klicken, um den Befehl zu schreiben"
+  entries:
+    help: {usage: "help [seite]", description: "Zeigt diese Hilfe."}
+    menu: {usage: "menu", description: "Öffnet dein Wegpunkt-Menü."}
+    create: {usage: "create <name>", description: "Erstellt einen Wegpunkt an deiner Position."}
+    list: {usage: "list [seite]", description: "Listet deine Wegpunkte. Klicke einen an, um ihn zu sehen."}
+    view: {usage: "view <id>", description: "Zeigt einen Wegpunkt an oder blendet ihn aus."}
+    hide: {usage: "hide <id>", description: "Blendet einen Wegpunkt aus (er bleibt in der Liste)."}
+    hide-all: {usage: "hide all", description: "Blendet alle deine Wegpunkte aus."}
+    mode: {usage: "mode", description: "Wechselt zwischen einzeln und sammeln."}
+    rename: {usage: "rename <id> <name>", description: "Benennt einen Wegpunkt um."}
+    color: {usage: "color <id> <text|icon|background> <farbe>", description: "Ändert eine Farbe eines Wegpunkts."}
+    favorite: {usage: "favorite <id>", description: "Markiert einen Wegpunkt als Favorit oder entfernt die Markierung."}
+    share: {usage: "share <id> <spieler>", description: "Bietet einem Online-Spieler eine Kopie des Wegpunkts an."}
+    delete: {usage: "delete <id>", description: "Löscht einen Wegpunkt."}
+    teleport: {usage: "tp <id>", description: "Teleportiert dich zu einem deiner Wegpunkte."}
+    admin-help: {usage: "admin help [seite]", description: "Zeigt alle Befehle (Spieler und Admin)."}
+    admin-list: {usage: "admin list <spieler> [seite]", description: "Listet die Wegpunkte eines Spielers."}
+    admin-menu: {usage: "admin menu <spieler>", description: "Bearbeitet die Wegpunkte eines Spielers im Menü."}
+    admin-info: {usage: "admin info <spieler>", description: "Wegpunkt-Daten eines Spielers."}
+    admin-tp: {usage: "admin tp <spieler> <id>", description: "Teleportiert dich zum Wegpunkt eines Spielers."}
+    admin-create: {usage: "admin create <spieler> <name>", description: "Erstellt an deiner Position einen Wegpunkt für einen Spieler."}
+    admin-rename: {usage: "admin rename <spieler> <id> <name>", description: "Benennt den Wegpunkt eines Spielers um."}
+    admin-color: {usage: "admin color <spieler> <id> <text|icon|background> <farbe>", description: "Ändert eine Farbe des Wegpunkts eines Spielers."}
+    admin-delete: {usage: "admin delete <spieler> <id>", description: "Löscht den Wegpunkt eines Spielers."}
+    admin-clear: {usage: "admin clear <spieler>", description: "Löscht alle Wegpunkte eines Spielers."}
+    restart: {usage: "restart", description: "Lädt die Konfiguration neu (nicht die Datenbank)."}
+
+share-request:
+  received: "&b{player} &amöchte {icon_color}{icon} {name} &amit dir teilen &7({seconds}s)."
+  accept: "&a&l[ANNEHMEN]"
+  separator: " "
+  decline: "&c&l[ABLEHNEN]"
+  accept-hover:
+    - "&7{name} &7zu deinen Wegpunkten hinzufügen"
+  decline-hover:
+    - "&7Den Wegpunkt ablehnen"
+
+teleport:
+  # Wird beim Start eines Countdowns angezeigt, je nach Abbruchmodus (teleport.countdown.cancel-on).
+  countdown-start:
+    none: "&eTeleport zu {name} &ein &f{seconds}s&e."
+    damage: "&eTeleport zu {name} &ein &f{seconds}s&e. Schaden bricht ihn ab."
+    movement: "&eTeleport zu {name} &ein &f{seconds}s&e. Beweg dich nicht."
+  countdown: "&eTeleport in &f{seconds}&e..."
+  cancelled-damage: "&cTeleport abgebrochen: du hast Schaden erlitten."
+  cancelled-movement: "&cTeleport abgebrochen: du hast dich bewegt."
+  # Wenn der Spieler während eines Countdowns erneut teleportieren will (gleicher oder anderer Wegpunkt).
+  cancelled-request: "&cTeleport zu {name} &cabgebrochen."
+
+death:
+  # Name der Todes-Wegpunkte (Spieler können sie umbenennen).
+  name: "Tod"
+
+pages:
+  previous: "&b&l« Zurück "
+  previous-disabled: "&8« Zurück "
+  next: " &b&lWeiter »"
+  next-disabled: " &8Weiter »"
+  current: "&7[&f{page}&7/&f{pages}&7]"
+  previous-hover:
+    - "&7Zur vorherigen Seite"
+  next-hover:
+    - "&7Zur nächsten Seite"
+
+list:
+  header:
+    - "&8&m        &r &b&lDeine Wegpunkte &8(&f{count}&8/&f{limit}&8) &7Modus: &f{mode} &8&m        "
+  admin-header:
+    - "&8&m        &r &c&lWegpunkte von {owner} &8(&f{count}&8) &8&m        "
+  empty:
+    - " &7Noch keine Wegpunkte. Erstelle einen mit &f/{cmd} create <name>&7."
+  # Platzhalter: {visible} {favorite} {icon_color} {icon} {name} {x} {y} {z} {world} {distance} {created}
+  entry: " {visible} {favorite}{icon_color}{icon} {name} &8» &7{x}, {y}, {z} &8(&7{world}&8)"
+  hover:
+    - "{icon_color}{icon} {name}"
+    - "&7Welt: &f{world}"
+    - "&7Koordinaten: &f{x}, {y}, {z}"
+    - "&7Entfernung: &f{distance}"
+    - "&7Erstellt: &f{created}"
+    - ""
+    - "&eKlicken&7, um ihn anzuzeigen oder auszublenden"
+    - "&eUmschalt + Klick&7, um seine ID in den Chat zu schreiben"
+  admin-hover:
+    - "{icon_color}{icon} {name}"
+    - "&7Welt: &f{world}"
+    - "&7Koordinaten: &f{x}, {y}, {z}"
+    - "&7Erstellt: &f{created}"
+    - "&7ID: &f{code}"
+    - ""
+    - "&eKlicken&7, um ihn zu bearbeiten"
+  hover-id:
+    - "&7ID: &f{code}"
+  visible-marker: "&a●"
+  hidden-marker: "&8○"
+  favorite-marker: "&e★ "
+  other-world: "andere Welt"
+
+placeholders:
+  mode-single: "einzeln"
+  mode-accumulate: "sammeln"
+  none: "keiner"
+  answer-yes: "ja"
+  answer-no: "nein"
+  other-world: "andere Welt"
+  free: "kostenlos"
+  never: "nie"
+  type-normal: "Wegpunkt"
+  type-death: "Tod"
+
+colors:
+  white: "&fWeiß"
+  light_gray: "&7Hellgrau"
+  gray: "&8Grau"
+  black: "&0Schwarz"
+  brown: "&#8B5A2BBraun"
+  red: "&cRot"
+  orange: "&6Orange"
+  yellow: "&eGelb"
+  lime: "&aHellgrün"
+  green: "&2Grün"
+  cyan: "&3Türkis"
+  light_blue: "&bHellblau"
+  blue: "&9Blau"
+  purple: "&5Lila"
+  magenta: "&dMagenta"
+  pink: "&#FFB6C1Rosa"
+
+menu:
+  # Wird der Beschreibung von Knöpfen ohne Berechtigung hinzugefügt (wenn menus.hide-items-without-permission false ist).
+  no-permission-lore:
+    - ""
+    - "&c✖ Dafür hast du keine Berechtigung"
+  main:
+    title: "&8Deine Wegpunkte &7({page}/{pages})"
+    admin-title: "&4Wegpunkte von {owner} &7({page}/{pages})"
+    waypoint:
+      name: "{icon_color}{icon} {name}"
+      # Jede Zeile ist freier Text. Verfügbar: {name} {name_plain} {icon} {icon_color} {text_color} {world} {x} {y} {z}
+      # {distance} {created} {status} {code} {time_left} {favorite} {death} {left_click} {teleport}
+      # {teleport_price} {share_price} {create_price} ("kostenlos", wenn es diesen Spieler nichts kostet).
+      lines:
+        - "{favorite}"
+        - "{death}"
+        - "&7Welt: &f{world}"
+        - "&7Koordinaten: &f{x}, {y}, {z}"
+        - "&7Entfernung: &f{distance}"
+        - "&7Erstellt: &f{created}"
+        - "&7Status: {status}"
+        - ""
+        - "{left_click}"
+        - "&eRechtsklick&7, um zu bearbeiten"
+        - "{teleport}"
+      admin-lines:
+        - "{favorite}"
+        - "{death}"
+        - "&7Welt: &f{world}"
+        - "&7Koordinaten: &f{x}, {y}, {z}"
+        - "&7Erstellt: &f{created}"
+        - "&7ID: &f{code}"
+        - ""
+        - "&eKlicken&7, um zu bearbeiten"
+        - "{teleport}"
+      left-click-show: "&eLinksklick&7, um anzuzeigen"
+      left-click-hide: "&eLinksklick&7, um auszublenden"
+      teleport: "&eUmschalt + Linksklick&7, um zu teleportieren"
+      teleport-paid: "&eUmschalt + Linksklick&7, um zu teleportieren &8(&f{price}&8)"
+      death: "&c☠ Todespunkt"
+      death-expires: "&c☠ Todespunkt &7- verschwindet in &f{time_left}"
+      visible: "&aSichtbar"
+      hidden: "&7Ausgeblendet"
+      favorite: "&e★ Favorit"
+      other-world: "andere Welt"
+    items:
+      filler: {name: " "}
+      empty:
+        name: "&7Du hast noch keine Wegpunkte"
+        lore:
+          - "&7Erstelle einen mit dem Buch unten"
+          - "&7oder mit &f/{cmd} create <name>"
+      info:
+        name: "&b&lWegpunkte von {owner}"
+        lore:
+          - "&7Wegpunkte: &f{count}"
+          - "&7Sichtbar: &f{visible}"
+      view-mode-single:
+        name: "&eAnzeige: &feinzeln"
+        lore:
+          - "&7Ein gewählter Wegpunkt blendet"
+          - "&7den sichtbaren aus."
+          - ""
+          - "&eKlicken&7, um zu &fsammeln &7zu wechseln"
+      view-mode-accumulate:
+        name: "&eAnzeige: &fsammeln"
+        lore:
+          - "&7Gewählte Wegpunkte kommen"
+          - "&7zu den sichtbaren hinzu."
+          - ""
+          - "&eKlicken&7, um zu &feinzeln &7zu wechseln"
+      hide-all:
+        name: "&cAlle ausblenden"
+        lore:
+          - "&7Entfernt alle Wegpunkte aus der Ansicht."
+          - "&7Sie bleiben in deiner Liste."
+      previous-page: {name: "&b« Vorherige Seite", lore: ["&7Seite {page} von {pages}"]}
+      previous-page-disabled: {name: "&8« Vorherige Seite"}
+      page-info: {name: "&fSeite {page}/{pages}"}
+      next-page: {name: "&bNächste Seite »", lore: ["&7Seite {page} von {pages}"]}
+      next-page-disabled: {name: "&8Nächste Seite »"}
+      create:
+        name: "&aHier einen Wegpunkt erstellen"
+        lore:
+          - "&7Speichert deine aktuelle Position"
+          - "&7mit dem Namen, den du schreibst."
+      close: {name: "&cSchließen"}
+  edit:
+    title: "&8Bearbeiten: {name_plain}"
+    items:
+      filler: {name: " "}
+      preview:
+        name: "{icon_color}{icon} {name}"
+        lore:
+          - "&7Welt: &f{world}"
+          - "&7Koordinaten: &f{x}, {y}, {z}"
+          - "&7Erstellt: &f{created}"
+      rename:
+        name: "&eUmbenennen"
+        lore:
+          - "&7Aktuell: {name}"
+          - ""
+          - "&eKlicken&7, um einen neuen zu schreiben"
+      text-color:
+        name: "&eTextfarbe"
+        lore:
+          - "&7Aktuell: {text_color_name}"
+      icon:
+        name: "&eSymbol: {icon_color}{icon}"
+        lore:
+          - "&7Das Zeichen vor dem Namen."
+          - ""
+          - "&eKlicken&7, um ein anderes zu wählen"
+      icon-color:
+        name: "&eSymbolfarbe"
+        lore:
+          - "&7Aktuell: {icon_color_name}"
+      background-color:
+        name: "&eHintergrundfarbe"
+        lore:
+          - "&7Aktuell: {background_name}"
+      favorite-add:
+        name: "&e★ Zu Favoriten hinzufügen"
+        lore:
+          - "&7Favoriten stehen oben in der Liste."
+      favorite-remove:
+        name: "&7☆ Aus Favoriten entfernen"
+        lore:
+          - "&7Er wird wieder nach Datum sortiert."
+      share:
+        name: "&bTeilen"
+        lore:
+          - "&7Sendet eine Kopie an einen anderen Spieler."
+          - "&7Er muss online sein und sie annehmen."
+      share-paid:
+        name: "&bTeilen"
+        lore:
+          - "&7Sendet eine Kopie an einen anderen Spieler."
+          - "&7Er muss online sein und sie annehmen."
+          - "&7Preis: &f{share_price}"
+      death-locked:
+        name: "&c☠ Todespunkt"
+        lore:
+          - "&7Name, Farben und Symbol können nicht geändert werden."
+          - "&7Verschwindet in: &f{time_left}"
+      teleport:
+        name: "&dTeleportieren"
+        lore:
+          - "&7Bringt dich zu diesem Wegpunkt."
+      teleport-paid:
+        name: "&dTeleportieren"
+        lore:
+          - "&7Bringt dich zu diesem Wegpunkt."
+          - "&7Preis: &f{price}"
+      back: {name: "&7« Zurück"}
+      delete:
+        name: "&cLöschen"
+        lore:
+          - "&7Du wirst um Bestätigung gebeten."
+  color:
+    title:
+      text: "&8Textfarbe"
+      icon: "&8Symbolfarbe"
+      background: "&8Hintergrundfarbe"
+    color-item:
+      name: "{color}"
+      lore:
+        - "&7Code: &f{hex}"
+      selected:
+        - ""
+        - "&a✔ Ausgewählt"
+      click:
+        - ""
+        - "&eKlicken&7, um anzuwenden"
+      locked:
+        - ""
+        - "&c✖ Für diese Farbe hast du keine Berechtigung"
+    items:
+      filler: {name: " "}
+      back: {name: "&7« Zurück"}
+      previous-page: {name: "&b« Vorherige Seite"}
+      previous-page-disabled: {name: "&8« Vorherige Seite"}
+      page-info: {name: "&fSeite {page}/{pages}"}
+      next-page: {name: "&bNächste Seite »"}
+      next-page-disabled: {name: "&8Nächste Seite »"}
+  icon:
+    title: "&8Wähle ein Symbol"
+    icon-item:
+      name: "&f{new_icon}"
+      lore:
+        - "&7So wird es aussehen:"
+        - "{icon_color}{new_icon} {name}"
+      selected:
+        - ""
+        - "&a✔ Aktuelles Symbol"
+      click:
+        - ""
+        - "&eKlicken&7, um es zu verwenden"
+    items:
+      filler: {name: " "}
+      back: {name: "&7« Zurück"}
+      previous-page: {name: "&b« Vorherige Seite"}
+      previous-page-disabled: {name: "&8« Vorherige Seite"}
+      page-info: {name: "&fSeite {page}/{pages}"}
+      next-page: {name: "&bNächste Seite »"}
+      next-page-disabled: {name: "&8Nächste Seite »"}
+  confirm-delete:
+    title: "&4Diesen Wegpunkt löschen?"
+    items:
+      filler: {name: " "}
+      confirm:
+        name: "&a✔ Ja, löschen"
+        lore:
+          - "&7Das kann nicht rückgängig gemacht werden."
+      preview:
+        name: "{icon_color}{icon} {name}"
+        lore:
+          - "&7{world} &8- &7{x}, {y}, {z}"
+      cancel: {name: "&c✖ Nein, zurück"}

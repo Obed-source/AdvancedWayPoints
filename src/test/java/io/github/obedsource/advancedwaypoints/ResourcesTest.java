@@ -43,7 +43,7 @@ class ResourcesTest {
 
     @Test
     void everyFileParsesAndHasAVersion() {
-        for (String file : new String[]{"config.yml", "menus.yml", "sounds.yml", "lang/es.yml", "lang/en.yml"}) {
+        for (String file : new String[]{"config.yml", "menus.yml", "sounds.yml", "lang/es.yml", "lang/en.yml", "lang/fr.yml", "lang/de.yml", "lang/pt.yml"}) {
             assertTrue(load(file).getInt("config-version") >= 1, file + " has no config-version");
         }
     }
@@ -94,13 +94,16 @@ class ResourcesTest {
 
     @Test
     void languagesHaveTheSameKeys() {
-        Set<String> es = new TreeSet<>(load("lang/es.yml").getKeys(true));
         Set<String> en = new TreeSet<>(load("lang/en.yml").getKeys(true));
-        Set<String> onlyEs = new TreeSet<>(es);
-        onlyEs.removeAll(en);
-        Set<String> onlyEn = new TreeSet<>(en);
-        onlyEn.removeAll(es);
-        assertTrue(onlyEs.isEmpty() && onlyEn.isEmpty(), "only es: " + onlyEs + " / only en: " + onlyEn);
+        for (String code : new String[]{"es", "fr", "de", "pt"}) {
+            Set<String> other = new TreeSet<>(load("lang/" + code + ".yml").getKeys(true));
+            Set<String> onlyOther = new TreeSet<>(other);
+            onlyOther.removeAll(en);
+            Set<String> onlyEn = new TreeSet<>(en);
+            onlyEn.removeAll(other);
+            assertTrue(onlyOther.isEmpty() && onlyEn.isEmpty(),
+                    "only " + code + ": " + onlyOther + " / missing in " + code + ": " + onlyEn);
+        }
     }
 
     @Test

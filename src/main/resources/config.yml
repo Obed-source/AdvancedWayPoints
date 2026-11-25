@@ -10,7 +10,7 @@
 # Do not edit: used to update this file automatically.
 config-version: 3
 
-# Language file inside /lang (en, es, or any file you create there, e.g. fr -> lang/fr.yml).
+# Language file inside /lang (en, es, fr, de, pt, or any file you create there, e.g. it -> lang/it.yml).
 # If the file does not exist, English is used.
 language: en
 

@@ -35,7 +35,7 @@ When they die, a red `☠ Death (12m) ⌛9:41` marker appears where they fell an
 
 **It respects your TPS.** Database reads, writes and update checks run on their own threads. Player data loads while the player is still on the login screen, stays in memory while they play and is released when they leave. Menus are built once when the plugin starts; opening one only fills in the player's own waypoints.
 
-**Everything players read is yours to change.** Every message, menu title, lore line, help page and color name lives in `lang/en.yml` or `lang/es.yml`. Menu sizes, item materials, button positions and the first slot of the list live in `menus.yml`. Every sound lives in `sounds.yml`.
+**Everything players read is yours to change.** Every message, menu title, lore line, help page and color name lives in `lang/en.yml`, `lang/es.yml`, `lang/fr.yml`, `lang/de.yml` or `lang/pt.yml`. Menu sizes, item materials, button positions and the first slot of the list live in `menus.yml`. Every sound lives in `sounds.yml`.
 
 **Updates never wipe your setup.** Each file is commented line by line. When a new version adds options, they are written into your files with their comments and your values stay as they were. A `.bak` copy is saved first.
 
@@ -97,7 +97,7 @@ On by default. The plugin reads [`update.json`](update.json) from this repositor
 2. Drop it into `plugins/` and restart.
 3. Type `/wp create home` in game.
 
-English is the default language. Set `language: es` in `config.yml` for Spanish, or add your own `lang/<code>.yml`.
+English is the default language. Set `language` in `config.yml` to `es` (Spanish), `fr` (French), `de` (German) or `pt` (Portuguese), or add your own `lang/<code>.yml`.
 
 ## Commands
 
