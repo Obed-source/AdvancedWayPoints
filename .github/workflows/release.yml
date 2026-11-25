@@ -1,0 +1,159 @@
+# Publishes a new release every time a pull request is merged into main.
+#
+#  1. Finds the pull request of the pushed commit (direct pushes and release commits are ignored).
+#  2. Picks the next version with .github/scripts/next-version.sh (labels or PR title, semver).
+#  3. Sets that version in build.gradle (plugin.yml takes it from there), builds and runs the tests.
+#  4. Writes update.json with the version, the download link and the SHA-256 of the jar,
+#     the same checksum the plugin verifies before installing an update.
+#  5. Tags vX.Y.Z and publishes the release with the jar, update.json and the sources,
+#     then pushes the version commit to main, so servers only see the new update.json
+#     once the jar it points to can be downloaded.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Find the merged pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          pr=$(gh api "repos/$REPO/commits/$SHA/pulls" \
+            -q '[.[] | select(.merged_at != null and .base.ref == "main")][0] // empty')
+          if [ -z "$pr" ]; then
+            echo "No merged pull request for $SHA, nothing to release."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          number=$(jq -r '.number' <<<"$pr")
+          d="EOF_$(openssl rand -hex 8)"
+          {
+            echo "found=true"
+            echo "number=$number"
+            echo "title<<$d"; jq -r '.title' <<<"$pr"; echo "$d"
+            echo "body<<$d"; jq -r '.body // ""' <<<"$pr"; echo "$d"
+            echo "labels<<$d"; jq -r '.labels[].name' <<<"$pr"; echo "$d"
+            echo "files<<$d"; gh api --paginate "repos/$REPO/pulls/$number/files" -q '.[].filename'; echo "$d"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Choose the version
+        id: plan
+        if: steps.pr.outputs.found == 'true'
+        env:
+          TITLE: ${{ steps.pr.outputs.title }}
+          BODY: ${{ steps.pr.outputs.body }}
+          LABELS: ${{ steps.pr.outputs.labels }}
+          FILES: ${{ steps.pr.outputs.files }}
+        run: |
+          # Last released version: highest vX.Y.Z tag, or build.gradle when there is none yet.
+          last_tag=$(git tag -l 'v[0-9]*' --sort=-v:refname | head -n 1)
+          gradle_version=$(sed -n "s/^version = '\(.*\)'/\1/p" build.gradle)
+          export CURRENT="${last_tag#v}"
+          CURRENT="${CURRENT:-$gradle_version}"
+          echo "Last released version: $CURRENT"
+          bash .github/scripts/next-version.sh | tee -a "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        if: steps.plan.outputs.release == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build and test
+        if: steps.plan.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          sed -i "s/^version = '.*'/version = '$VERSION'/" build.gradle
+          chmod +x gradlew
+          ./gradlew build --no-daemon
+          test -f "build/libs/AdvancedWayPoints-$VERSION.jar"
+
+      - name: Write update.json and package the sources
+        if: steps.plan.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          TITLE: ${{ steps.pr.outputs.title }}
+          REPO: ${{ github.repository }}
+        run: |
+          jar="build/libs/AdvancedWayPoints-$VERSION.jar"
+          sha=$(sha256sum "$jar" | cut -d' ' -f1)
+          jq --arg v "$VERSION" \
+             --arg url "https://github.com/$REPO/releases/download/v$VERSION/AdvancedWayPoints-$VERSION.jar" \
+             --arg sha "$sha" \
+             --arg log "$TITLE" \
+             '.version = $v | .download = $url | .sha256 = $sha | .changelog = $log' \
+             update.json > update.json.tmp
+          mv update.json.tmp update.json
+          cat update.json
+
+      - name: Commit and tag
+        if: steps.plan.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build.gradle update.json
+          git commit -m "Release v$VERSION" -m "Pull request #$NUMBER"
+          git tag -a "v$VERSION" -m "AdvancedWayPoints $VERSION"
+          git archive --format=zip --prefix="AdvancedWayPoints-$VERSION/" \
+            -o "build/AdvancedWayPoints-$VERSION-src.zip" "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Publish the release
+        if: steps.plan.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.plan.outputs.version }}
+          TITLE: ${{ steps.pr.outputs.title }}
+          NUMBER: ${{ steps.pr.outputs.number }}
+          BUMP: ${{ steps.plan.outputs.bump }}
+        run: |
+          printf '%s (#%s)\n\nVersion bump: %s. Install: drop the jar into plugins/ and restart, or let the auto-updater do it.\n' \
+            "$TITLE" "$NUMBER" "$BUMP" > notes.md
+          gh release create "v$VERSION" \
+            "build/libs/AdvancedWayPoints-$VERSION.jar" \
+            "update.json" \
+            "build/AdvancedWayPoints-$VERSION-src.zip" \
+            --title "AdvancedWayPoints $VERSION" \
+            --notes-file notes.md \
+            --generate-notes \
+            --latest
+
+      - name: Push the version to main
+        if: steps.plan.outputs.release == 'true'
+        run: |
+          # Another merge may have landed while this ran: replay the version commit on top of it.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main
+          done
+          echo "Could not push the version commit to main" >&2
+          exit 1

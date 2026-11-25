@@ -194,6 +194,20 @@ Events: `WaypointCreateEvent`, `WaypointDeleteEvent`, `WaypointShareEvent` (canc
 
 The jar is written to `build/libs/`. `./gradlew test` checks the YAML files, the SQLite storage and the helpers.
 
+## Releases
+
+Every pull request merged into `main` publishes a release automatically ([`.github/workflows/release.yml`](.github/workflows/release.yml)). The workflow builds and tests the plugin, then attaches the jar, `update.json` and the sources to a new `vX.Y.Z` release. It updates `update.json` on `main` with the new version, the download link and the jar's SHA-256, which is what the auto-updater checks before installing.
+
+The version follows [semantic versioning](https://semver.org), based on the pull request:
+
+| Pull request | Version |
+|---|---|
+| Label `release:major`, `release:minor` or `release:patch` | That bump, whatever the title says |
+| Title `type!: ...` or `BREAKING CHANGE` in the description | Major (`1.4.2` → `2.0.0`) |
+| Title `feat: ...` or `feat(scope): ...` | Minor (`1.4.2` → `1.5.0`) |
+| Anything else (`fix:`, `perf:`, `refactor:`...) | Patch (`1.4.2` → `1.4.3`) |
+| Label `no-release`, or no change in `src/`, `build.gradle`, `settings.gradle`, `gradle/` or `gradlew` | No release |
+
 ## Support the project
 
 AdvancedWayPoints is free and will stay free. If it saves your players a few lost bases, you can buy me a coffee at **[paypal.me/obedmontano](https://paypal.me/obedmontano)**. Bug reports and ideas are welcome in [Issues](https://github.com/Obed-source/AdvancedWayPoints/issues), and a ⭐ helps other server owners find it.
