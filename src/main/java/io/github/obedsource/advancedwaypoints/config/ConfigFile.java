@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A YAML file in the plugin folder that updates itself.
@@ -24,36 +26,47 @@ public final class ConfigFile {
 
     public static final String VERSION_KEY = "config-version";
 
-    private final JavaPlugin plugin;
+    private final Function<String, InputStream> resources;
+    private final Logger logger;
     private final String resourcePath;
     private final File file;
     private YamlConfiguration config;
 
     public ConfigFile(JavaPlugin plugin, String resourcePath) {
-        this.plugin = plugin;
+        this(plugin::getResource, plugin.getDataFolder(), plugin.getLogger(), resourcePath);
+    }
+
+    /** Without a plugin instance (used by tests). */
+    public ConfigFile(Function<String, InputStream> resources, File dataFolder, Logger logger, String resourcePath) {
+        this.resources = resources;
+        this.logger = logger;
         this.resourcePath = resourcePath;
-        this.file = new File(plugin.getDataFolder(), resourcePath);
+        this.file = new File(dataFolder, resourcePath);
+    }
+
+    /** Writes the bundled file to disk. */
+    private void copyBundled() {
+        try (InputStream in = resources.apply(resourcePath)) {
+            if (in != null) {
+                Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not write " + resourcePath, e);
+        }
     }
 
     /**
-     * A change of default between file versions: when the owner's file is older than {@code version} and
-     * still has the old default at {@code path}, the new default replaces it. With a null old value the
-     * path is removed (an option that no longer exists).
+     * An option that no longer exists: dropped when updating from a file older than {@code version}.
+     * Existing options are never replaced; only missing ones are added.
      */
-    private record Migration(int version, String path, Object oldDefault) {
+    private record Removal(int version, String path) {
     }
 
-    private final java.util.List<Migration> migrations = new java.util.ArrayList<>();
-
-    /** Replaces an untouched old default with the new bundled one when updating from an older file. */
-    public ConfigFile migrateDefault(int version, String path, Object oldDefault) {
-        migrations.add(new Migration(version, path, oldDefault));
-        return this;
-    }
+    private final java.util.List<Removal> removals = new java.util.ArrayList<>();
 
     /** Drops an option that no longer exists when updating from an older file. */
     public ConfigFile removed(int version, String path) {
-        migrations.add(new Migration(version, path, null));
+        removals.add(new Removal(version, path));
         return this;
     }
 
@@ -66,7 +79,7 @@ public final class ConfigFile {
     }
 
     public boolean hasBundledDefaults() {
-        return plugin.getResource(resourcePath) != null;
+        return resources.apply(resourcePath) != null;
     }
 
     /** Loads (and updates if needed) the file. */
@@ -79,9 +92,9 @@ public final class ConfigFile {
             }
             File parent = file.getParentFile();
             if (parent != null && !parent.exists() && !parent.mkdirs()) {
-                plugin.getLogger().warning("Could not create folder " + parent);
+                logger.warning("Could not create folder " + parent);
             }
-            plugin.saveResource(resourcePath, false);
+            copyBundled();
         }
 
         YamlConfiguration current = new YamlConfiguration();
@@ -89,10 +102,10 @@ public final class ConfigFile {
         try {
             current.load(file);
         } catch (IOException | InvalidConfigurationException e) {
-            plugin.getLogger().log(Level.SEVERE, "Invalid YAML in " + file.getName() + ", a backup was made and the default file restored", e);
+            logger.log(Level.SEVERE, "Invalid YAML in " + file.getName() + ", a backup was made and the default file restored", e);
             backup("broken");
             if (defaults != null) {
-                plugin.saveResource(resourcePath, true);
+                copyBundled();
                 config = defaults;
                 return config;
             }
@@ -106,14 +119,17 @@ public final class ConfigFile {
             YamlConfiguration merged = merge(defaults, current);
             try {
                 merged.save(file);
-                plugin.getLogger().info("Updated " + resourcePath + " (version " + oldVersion + " -> "
+                logger.info("Updated " + resourcePath + " (version " + oldVersion + " -> "
                         + defaults.getInt(VERSION_KEY, 0) + "), your values were kept.");
             } catch (IOException e) {
-                plugin.getLogger().log(Level.SEVERE, "Could not save updated " + resourcePath, e);
+                logger.log(Level.SEVERE, "Could not save updated " + resourcePath, e);
             }
             current = merged;
+            // merge() filled the template object itself: load a separate copy for the defaults,
+            // otherwise the file would be its own defaults and every lookup would recurse forever.
+            defaults = loadBundled();
         }
-        if (defaults != null) {
+        if (defaults != null && defaults != current) {
             current.setDefaults(defaults);
         }
         config = current;
@@ -121,7 +137,7 @@ public final class ConfigFile {
     }
 
     private YamlConfiguration loadBundled() {
-        InputStream stream = plugin.getResource(resourcePath);
+        InputStream stream = resources.apply(resourcePath);
         if (stream == null) {
             return null;
         }
@@ -131,7 +147,7 @@ public final class ConfigFile {
             yaml.load(reader);
             return yaml;
         } catch (IOException | InvalidConfigurationException e) {
-            plugin.getLogger().log(Level.SEVERE, "Bundled " + resourcePath + " is invalid", e);
+            logger.log(Level.SEVERE, "Bundled " + resourcePath + " is invalid", e);
             return null;
         }
     }
@@ -152,25 +168,19 @@ public final class ConfigFile {
     private YamlConfiguration merge(YamlConfiguration defaults, YamlConfiguration current) {
         int fileVersion = current.getInt(VERSION_KEY, 0);
         for (String key : current.getKeys(true)) {
-            if (VERSION_KEY.equals(key) || current.isConfigurationSection(key) || skippedByMigration(key, current, fileVersion)) {
+            if (VERSION_KEY.equals(key) || current.isConfigurationSection(key) || removedOption(key, fileVersion)) {
                 continue;
             }
+            // Every value the owner has is kept as is; only missing options come from the template.
             defaults.set(key, current.get(key));
         }
         return defaults;
     }
 
-    private boolean skippedByMigration(String key, YamlConfiguration current, int fileVersion) {
-        for (Migration migration : migrations) {
-            if (fileVersion >= migration.version()) {
-                continue;
-            }
-            if (migration.oldDefault() == null) {
-                if (key.equals(migration.path()) || key.startsWith(migration.path() + ".")) {
-                    return true;
-                }
-            } else if (key.equals(migration.path())
-                    && String.valueOf(migration.oldDefault()).equals(String.valueOf(current.get(key)))) {
+    private boolean removedOption(String key, int fileVersion) {
+        for (Removal removal : removals) {
+            if (fileVersion < removal.version()
+                    && (key.equals(removal.path()) || key.startsWith(removal.path() + "."))) {
                 return true;
             }
         }
@@ -185,7 +195,7 @@ public final class ConfigFile {
         try {
             Files.copy(file.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not back up " + file.getName(), e);
+            logger.log(Level.WARNING, "Could not back up " + file.getName(), e);
         }
     }
 }

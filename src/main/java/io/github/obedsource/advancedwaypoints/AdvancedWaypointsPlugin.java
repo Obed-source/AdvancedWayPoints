@@ -88,19 +88,13 @@ public final class AdvancedWaypointsPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         scheduler = PlatformScheduler.create(this);
-        // Defaults that changed: replaced only where the owner never edited them.
+        // Existing values are never replaced; only options that no longer exist are dropped.
         configFile = new ConfigFile(this, "config.yml")
-                .migrateDefault(2, "language", "es")
-                .migrateDefault(2, "waypoints.default-background-color", "black")
-                .migrateDefault(2, "display.update-interval-ticks", 2)
-                .migrateDefault(2, "display.smooth-movement-ticks", 2)
                 .removed(2, "economy")
-                .migrateDefault(3, "waypoints.default-background-color", "blue")
                 .removed(3, "death-waypoint.keep")
                 .removed(3, "share.allow-offline-players");
         menusFile = new ConfigFile(this, "menus.yml");
-        soundsFile = new ConfigFile(this, "sounds.yml")
-                .migrateDefault(2, "sounds.show.sound", "minecraft:block.amethyst_block.chime");
+        soundsFile = new ConfigFile(this, "sounds.yml");
         loadFiles();
 
         database = new SqliteDatabase(new File(getDataFolder(), settings.databaseFile), getLogger());
